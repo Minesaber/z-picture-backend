@@ -15,14 +15,19 @@ spring:
 mybatis-plus:
   configuration:
     # 自动映射为驼峰字段
-    map-underscore-to-camel-case: true
+    map-underscore-to-camel-case: false
     # 仅在开发环境打印日志
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
-      logic-delete-field: deleted
+      logic-delete-field: isDeleted
       logic-delete-value: 1
       logic-not-delete-value: 0
+
+system:
+  salt: "Minesaber"
+  default-user-password: "12345678"
+  default-user-name: "无名"
 
 knife4j:
   enable: true
@@ -31,7 +36,6 @@ knife4j:
     version: V1.0
     group:
       default:
-        group-name: 默认分组
         api-rule: package
         api-rule-resources:
           - com.minesaber.zpicturebackend.controller

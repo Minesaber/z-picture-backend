@@ -33,10 +33,10 @@ public class BaseResponse<T> implements Serializable {
    * 全局响应
    *
    * @param code 状态码
-   * @param data 数据
+   * @param message 描述信息
    */
-  public BaseResponse(int code, T data) {
-    this(code, "", data);
+  public BaseResponse(int code, String message) {
+    this(code, message, null);
   }
 
   /**
@@ -56,5 +56,15 @@ public class BaseResponse<T> implements Serializable {
    */
   public BaseResponse(ErrorCode errorCode, String message) {
     this(errorCode.getCode(), message, null);
+  }
+
+  /**
+   * 全局响应
+   *
+   * @param data 数据
+   * @param code 状态码
+   */
+  public BaseResponse(T data, int code) {
+    this(code, "", data);
   }
 }

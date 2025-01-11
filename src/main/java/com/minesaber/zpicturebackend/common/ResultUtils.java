@@ -11,7 +11,7 @@ public class ResultUtils {
    * @return 响应
    * @param <T> 数据类型
    */
-  public static <T> BaseResponse<?> success(T data) {
+  public static <T> BaseResponse<T> success(T data) {
     return new BaseResponse<>(0, "OK", data);
   }
 
