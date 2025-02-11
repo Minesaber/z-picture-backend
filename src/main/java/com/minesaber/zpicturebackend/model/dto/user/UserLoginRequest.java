@@ -7,7 +7,7 @@ import java.io.Serializable;
 /** 用户登录请求 */
 @Data
 public class UserLoginRequest implements Serializable {
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 4221172121129488617L;
 
   /** 用户账号 */
   private String userAccount;

@@ -1,4 +1,6 @@
-package com.minesaber.zpicturebackend.annotation;
+package com.minesaber.zpicturebackend.aop.annotation;
+
+import com.minesaber.zpicturebackend.constant.UserConstant;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,5 +15,5 @@ public @interface AuthCheck {
    *
    * @return 角色 Key
    */
-  String mustRole() default "";
+  String mustRole() default UserConstant.DEFAULT_ROLE;
 }

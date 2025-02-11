@@ -1,0 +1,27 @@
+package com.minesaber.zpicturebackend.model.dto.picture;
+
+import java.io.Serializable;
+import java.util.List;
+
+import lombok.Data;
+
+/** 图片更新请求 */
+@Data
+public class PictureUpdateRequest implements Serializable {
+  private static final long serialVersionUID = 6551635345541078607L;
+
+  /** id */
+  private Long id;
+
+  /** 名称 */
+  private String name;
+
+  /** 简介 */
+  private String profile;
+
+  /** 分类 */
+  private String category;
+
+  /** 标签（JSON数组） */
+  private List<String> tags;
+}

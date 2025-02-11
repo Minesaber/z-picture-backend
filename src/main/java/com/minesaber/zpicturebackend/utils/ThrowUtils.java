@@ -1,4 +1,7 @@
-package com.minesaber.zpicturebackend.exception;
+package com.minesaber.zpicturebackend.utils;
+
+import com.minesaber.zpicturebackend.exception.BusinessException;
+import com.minesaber.zpicturebackend.enums.ErrorCode;
 
 /** 异常处理工具类 */
 public class ThrowUtils {
@@ -21,7 +24,7 @@ public class ThrowUtils {
    * @param errorCode 错误码
    */
   public static void throwIf(boolean condition, ErrorCode errorCode) {
-    throwIf(condition,  new BusinessException(errorCode.getCode(), errorCode.getMessage()));
+    throwIf(condition, new BusinessException(errorCode.getCode(), errorCode.getMessage()));
   }
 
   /**

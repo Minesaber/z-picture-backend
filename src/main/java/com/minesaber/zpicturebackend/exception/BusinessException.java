@@ -1,5 +1,6 @@
 package com.minesaber.zpicturebackend.exception;
 
+import com.minesaber.zpicturebackend.enums.ErrorCode;
 import lombok.Getter;
 
 /** 业务异常 */

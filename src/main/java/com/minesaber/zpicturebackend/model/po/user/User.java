@@ -1,14 +1,21 @@
-package com.minesaber.zpicturebackend.model.vo;
+package com.minesaber.zpicturebackend.model.po.user;
 
+import com.baomidou.mybatisplus.annotation.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
 
-/** 已登录用户视图（脱敏） */
+/** 用户 */
+@TableName(value = "user")
 @Data
-public class UserLoginVO implements Serializable {
+@Builder
+public class User implements Serializable {
+  private static final long serialVersionUID = 3266680839921602594L;
+
   /** id */
+  @TableId(type = IdType.ASSIGN_ID)
   private Long id;
 
   /** 创建时间 */
@@ -20,8 +27,14 @@ public class UserLoginVO implements Serializable {
   /** 更新时间 */
   private Date updateTime;
 
+  /** 是否已删除 */
+  @TableLogic private Integer isDeleted;
+
   /** 账号 */
   private String userAccount;
+
+  /** 密码 */
+  private String userPassword;
 
   /** 用户角色：user/admin */
   private String userRole;
@@ -34,6 +47,4 @@ public class UserLoginVO implements Serializable {
 
   /** 用户简介 */
   private String userProfile;
-
-  private static final long serialVersionURD = 1L;
 }

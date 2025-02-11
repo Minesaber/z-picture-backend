@@ -1,16 +1,17 @@
 server:
-  port: 1288
+  port: 88
   servlet:
     context-path: /api
 
 spring:
   application:
     name: z-picture-backend
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/z_picture
-    username: root
-    password: saber
+  profiles:
+    active: local
+  # 最大文件上传体积
+  servlet:
+    multipart:
+      max-file-size: 10MB
 
 mybatis-plus:
   configuration:
@@ -23,11 +24,6 @@ mybatis-plus:
       logic-delete-field: isDeleted
       logic-delete-value: 1
       logic-not-delete-value: 0
-
-system:
-  salt: "Minesaber"
-  default-user-password: "12345678"
-  default-user-name: "无名"
 
 knife4j:
   enable: true

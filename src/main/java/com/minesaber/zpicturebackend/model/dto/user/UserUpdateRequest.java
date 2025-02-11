@@ -7,6 +7,8 @@ import java.io.Serializable;
 /** 用户更新请求 */
 @Data
 public class UserUpdateRequest implements Serializable {
+  private static final long serialVersionUID = 6090898277503051220L;
+
   /** id */
   private Long id;
 
@@ -21,6 +23,4 @@ public class UserUpdateRequest implements Serializable {
 
   /** 用户简介 */
   private String userProfile;
-
-  private static final long serialVersionURD = 1L;
 }

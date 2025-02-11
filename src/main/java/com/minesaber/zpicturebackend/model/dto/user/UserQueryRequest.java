@@ -1,6 +1,6 @@
 package com.minesaber.zpicturebackend.model.dto.user;
 
-import com.minesaber.zpicturebackend.common.PageRequest;
+import com.minesaber.zpicturebackend.model.dto.base.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -10,6 +10,8 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class UserQueryRequest extends PageRequest implements Serializable {
+  private static final long serialVersionUID = -7901768021196907439L;
+
   /** id */
   private Long id;
 
@@ -24,6 +26,4 @@ public class UserQueryRequest extends PageRequest implements Serializable {
 
   /** 用户简介 */
   private String userProfile;
-
-  private static final long serialVersionURD = 1L;
 }

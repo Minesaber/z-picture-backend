@@ -1,10 +1,14 @@
-package com.minesaber.zpicturebackend.common;
+package com.minesaber.zpicturebackend.model.dto.base;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 /** 通用分页请求类 */
 @Data
-public class PageRequest {
+public class PageRequest implements Serializable {
+  private static final long serialVersionUID = -3190937833240379087L;
+
   /** 当前页号 */
   private int current = 1;
 

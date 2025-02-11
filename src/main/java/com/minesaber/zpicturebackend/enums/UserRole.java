@@ -1,4 +1,4 @@
-package com.minesaber.zpicturebackend.model.enums;
+package com.minesaber.zpicturebackend.enums;
 
 import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;

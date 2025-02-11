@@ -3,9 +3,8 @@ package com.minesaber.zpicturebackend.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.minesaber.zpicturebackend.model.dto.user.UserQueryRequest;
-import com.minesaber.zpicturebackend.model.entity.User;
-import com.minesaber.zpicturebackend.model.vo.UserLoginVO;
-import com.minesaber.zpicturebackend.model.vo.UserVO;
+import com.minesaber.zpicturebackend.model.po.user.User;
+import com.minesaber.zpicturebackend.model.vo.user.UserVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -29,31 +28,7 @@ public interface UserService extends IService<User> {
    * @param request 登录请求
    * @return 已登录用户视图
    */
-  UserLoginVO userLogin(String userAccount, String userPassword, HttpServletRequest request);
-
-  /**
-   * 获取加密后的密码
-   *
-   * @param password 原始密码
-   * @return 加密后的密码
-   */
-  String getEncryptPassword(String password);
-
-  /**
-   * 获取当前用户
-   *
-   * @param request request
-   * @return 当前用户
-   */
-  User getLoginUser(HttpServletRequest request);
-
-  /**
-   * 获取已登录用户视图（脱敏）
-   *
-   * @param user 用户
-   * @return 已登录用户视图
-   */
-  UserLoginVO getLoginUserVO(User user);
+  UserVO userLogin(String userAccount, String userPassword, HttpServletRequest request);
 
   /**
    * 用户注销
@@ -63,12 +38,20 @@ public interface UserService extends IService<User> {
   void userLogout(HttpServletRequest request);
 
   /**
-   * 获取用户视图（脱敏）
+   * 获取当前登录用户
+   *
+   * @param request request
+   * @return 当前登录用户
+   */
+  User getLoginUser(HttpServletRequest request);
+
+  /**
+   * 判断用户是否为管理员
    *
    * @param user 用户
-   * @return 用户视图
+   * @return 判断结果
    */
-  UserVO getUserVO(User user);
+  boolean isAdmin(User user);
 
   /**
    * 获取用户视图列表（脱敏）
@@ -76,7 +59,7 @@ public interface UserService extends IService<User> {
    * @param userList 用户列表
    * @return 用户视图列表
    */
-  List<UserVO> getUserVOList(List<User> userList);
+  List<UserVO> convertToUserVOList(List<User> userList);
 
   /**
    * 获取QueryWrapper

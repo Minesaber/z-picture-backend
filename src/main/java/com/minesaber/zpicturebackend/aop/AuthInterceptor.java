@@ -1,25 +1,22 @@
 package com.minesaber.zpicturebackend.aop;
 
-import com.minesaber.zpicturebackend.annotation.AuthCheck;
-import com.minesaber.zpicturebackend.exception.ErrorCode;
-import com.minesaber.zpicturebackend.exception.ThrowUtils;
-import com.minesaber.zpicturebackend.model.entity.User;
-import com.minesaber.zpicturebackend.model.enums.UserRole;
+import com.minesaber.zpicturebackend.aop.annotation.AuthCheck;
+import com.minesaber.zpicturebackend.constant.UserConstant;
+import com.minesaber.zpicturebackend.enums.ErrorCode;
+import com.minesaber.zpicturebackend.model.po.user.User;
+import com.minesaber.zpicturebackend.utils.RequestUtils;
+import com.minesaber.zpicturebackend.utils.ThrowUtils;
+import com.minesaber.zpicturebackend.enums.UserRole;
 import com.minesaber.zpicturebackend.service.UserService;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 
 @Aspect
 @Component
-@Slf4j
 public class AuthInterceptor {
   @Resource private UserService userService;
 
@@ -33,26 +30,21 @@ public class AuthInterceptor {
    */
   @Around("@annotation(authCheck)")
   public Object doIntercept(ProceedingJoinPoint joinPoint, AuthCheck authCheck) throws Throwable {
-    // 1、检查用户登录状态
-    ServletRequestAttributes servletRequestAttributes =
-        (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-    HttpServletRequest request = null;
-    if (servletRequestAttributes != null) {
-      request = servletRequestAttributes.getRequest();
-    }
-    User loginUser = userService.getLoginUser(request);
-    String userRole = loginUser.getUserRole();
-    UserRole userRoleEnum = UserRole.getEnumByValue(userRole);
+    // 1、检查是否已登录
+    User currentUser = (User) RequestUtils.getAttribute(UserConstant.LOGIN_USER_STATE);
+    ThrowUtils.throwIf(
+        currentUser == null || currentUser.getId() == null, ErrorCode.NOT_LOGIN_ERROR);
     // 2、检查注解
-    String role = authCheck.mustRole();
-    UserRole roleEnum = UserRole.getEnumByValue(role);
-    if (roleEnum == null) {
-      // todo 使用注解时配置参数错误，可能需要做日志记录
+    UserRole annoRoleEnum = UserRole.getEnumByValue(authCheck.mustRole());
+    ThrowUtils.throwIf(annoRoleEnum == null, ErrorCode.SYSTEM_ERROR);
+    // 3、如果仅要求用户权限
+    if (UserRole.USER == annoRoleEnum) {
       return joinPoint.proceed();
     }
-    // 3、检查是否符合
+    // 3、如果要求管理员权限
+    UserRole userRoleEnum = UserRole.getEnumByValue(currentUser.getUserRole());
     ThrowUtils.throwIf(
-        UserRole.ADMIN == roleEnum && UserRole.ADMIN != userRoleEnum, ErrorCode.NO_AUTH_ERROR);
+        UserRole.ADMIN == annoRoleEnum && UserRole.ADMIN != userRoleEnum, ErrorCode.NO_AUTH_ERROR);
     // 4、放行
     return joinPoint.proceed();
   }
