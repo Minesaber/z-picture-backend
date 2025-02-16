@@ -8,6 +8,9 @@ public interface FileConstant {
   /** 1MB的字节数 */
   Long MB = (long) (1024 * 1024);
 
+  /** 最大大小（单位为MB） */
+  Integer FILE_MAX_SIZE = 10;
+
   /** 允许上传的图片类型 */
   List<String> ALLOW_FORMAT_LIST = Arrays.asList("png", "jpg", "jpeg", "webp");
 

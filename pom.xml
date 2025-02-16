@@ -3,10 +3,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.minesaber</groupId>
-    <artifactId>z-userPO-backend</artifactId>
+    <artifactId>z-picture-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>z-userPO-backend</name>
-    <description>z-userPO-backend</description>
+    <name>z-picture-backend</name>
+    <description>z-picture-backend</description>
     <properties>
         <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

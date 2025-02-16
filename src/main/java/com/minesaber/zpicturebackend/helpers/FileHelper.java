@@ -113,7 +113,7 @@ public class FileHelper {
         prefix.length() > FileConstant.FILE_NAME_MAX_LENGTH, ErrorCode.PARAMS_ERROR, "文件名称过长");
     // 校验大小
     long size = multipartFile.getSize();
-    int maxSize = systemConfig.getMaxSize();
+    int maxSize = FileConstant.FILE_MAX_SIZE;
     ThrowUtils.throwIf(
         size > maxSize * FileConstant.MB, ErrorCode.PARAMS_ERROR, "文件大小不能超过" + maxSize + "MB");
     // 校验后缀与魔数
