@@ -6,7 +6,7 @@ import com.minesaber.zpicturebackend.aop.annotation.AuthCheck;
 import com.minesaber.zpicturebackend.helpers.FileHelper;
 import com.minesaber.zpicturebackend.model.vo.base.Response;
 import com.minesaber.zpicturebackend.utils.ResultUtils;
-import com.minesaber.zpicturebackend.constant.UserConstant;
+import com.minesaber.zpicturebackend.constants.UserConstant;
 import com.minesaber.zpicturebackend.helpers.OssHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;

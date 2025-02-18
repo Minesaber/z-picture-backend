@@ -9,7 +9,7 @@ import com.minesaber.zpicturebackend.model.po.user.User;
 import com.minesaber.zpicturebackend.model.vo.user.UserVO;
 import com.minesaber.zpicturebackend.utils.DatabaseUtils;
 import com.minesaber.zpicturebackend.config.SystemConfig;
-import com.minesaber.zpicturebackend.constant.UserConstant;
+import com.minesaber.zpicturebackend.constants.UserConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 import com.minesaber.zpicturebackend.utils.ThrowUtils;
 import com.minesaber.zpicturebackend.mapper.UserMapper;

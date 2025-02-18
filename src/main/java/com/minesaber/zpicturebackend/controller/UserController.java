@@ -11,7 +11,7 @@ import com.minesaber.zpicturebackend.utils.DatabaseUtils;
 import com.minesaber.zpicturebackend.model.dto.base.DeleteRequest;
 import com.minesaber.zpicturebackend.utils.ResultUtils;
 import com.minesaber.zpicturebackend.config.SystemConfig;
-import com.minesaber.zpicturebackend.constant.UserConstant;
+import com.minesaber.zpicturebackend.constants.UserConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 import com.minesaber.zpicturebackend.utils.ThrowUtils;
 import com.minesaber.zpicturebackend.model.dto.user.*;

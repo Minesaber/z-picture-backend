@@ -7,7 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.minesaber.zpicturebackend.constant.FileConstant;
+import com.minesaber.zpicturebackend.constants.FileConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 import com.minesaber.zpicturebackend.helpers.FileHelper;
 import com.minesaber.zpicturebackend.mapper.PictureMapper;

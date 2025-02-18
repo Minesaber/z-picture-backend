@@ -1,4 +1,4 @@
-package com.minesaber.zpicturebackend.constant;
+package com.minesaber.zpicturebackend.constants;
 
 /** 用户常量 Key */
 public interface UserConstant {

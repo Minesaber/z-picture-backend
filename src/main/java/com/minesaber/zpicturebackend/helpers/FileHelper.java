@@ -8,7 +8,7 @@ import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.minesaber.zpicturebackend.config.SystemConfig;
-import com.minesaber.zpicturebackend.constant.FileConstant;
+import com.minesaber.zpicturebackend.constants.FileConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 import com.minesaber.zpicturebackend.utils.ThrowUtils;
 import com.minesaber.zpicturebackend.model.bo.picture.UploadPictureResult;

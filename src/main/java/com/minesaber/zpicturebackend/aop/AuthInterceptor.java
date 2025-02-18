@@ -1,7 +1,7 @@
 package com.minesaber.zpicturebackend.aop;
 
 import com.minesaber.zpicturebackend.aop.annotation.AuthCheck;
-import com.minesaber.zpicturebackend.constant.UserConstant;
+import com.minesaber.zpicturebackend.constants.UserConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 import com.minesaber.zpicturebackend.model.po.user.User;
 import com.minesaber.zpicturebackend.utils.RequestUtils;

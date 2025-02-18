@@ -2,10 +2,11 @@ package com.minesaber.zpicturebackend.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.minesaber.zpicturebackend.aop.annotation.AuthCheck;
-import com.minesaber.zpicturebackend.constant.FileConstant;
-import com.minesaber.zpicturebackend.constant.UserConstant;
+import com.minesaber.zpicturebackend.constants.FileConstant;
+import com.minesaber.zpicturebackend.constants.UserConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 import com.minesaber.zpicturebackend.enums.UserRole;
 import com.minesaber.zpicturebackend.model.dto.base.DeleteRequest;
@@ -24,6 +25,7 @@ import com.minesaber.zpicturebackend.utils.DatabaseUtils;
 import com.minesaber.zpicturebackend.utils.ResultUtils;
 import com.minesaber.zpicturebackend.utils.ThrowUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -166,7 +168,9 @@ public class PictureController {
       @RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest request) {
     pictureService.validEditRequest(pictureEditRequest);
     Picture picture = Picture.builder().build();
-    BeanUtil.copyProperties(pictureEditRequest, picture);
+    // todo 字符串转JSON需要手动处理，hutool会忽略双引号
+    BeanUtils.copyProperties(pictureEditRequest, picture);
+    picture.setTags(JSONUtil.toJsonStr(pictureEditRequest.getTags()));
     // 补充编辑时间
     picture.setEditTime(new Date());
     Long id = pictureEditRequest.getId();
