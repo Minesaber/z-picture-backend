@@ -2,9 +2,7 @@ package com.minesaber.zpicturebackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.minesaber.zpicturebackend.model.dto.picture.PictureEditRequest;
-import com.minesaber.zpicturebackend.model.dto.picture.PictureQueryRequest;
-import com.minesaber.zpicturebackend.model.dto.picture.PictureUpdateRequest;
+import com.minesaber.zpicturebackend.model.dto.picture.*;
 import com.minesaber.zpicturebackend.model.po.picture.Picture;
 import com.minesaber.zpicturebackend.model.po.user.User;
 import com.minesaber.zpicturebackend.model.vo.picture.PictureVO;
@@ -16,12 +14,23 @@ public interface PictureService extends IService<Picture> {
   /**
    * 更新图片或上传新图片
    *
-   * @param id id
-   * @param multipartFile 图片
+   * @param pictureUploadRequest 图片上传请求
+   * @param inputSource 文件源
    * @param loginUser 当前登录图片
    * @return 视图
    */
-  PictureVO uploadPicture(Long id, MultipartFile multipartFile, User loginUser);
+  PictureVO uploadPicture(PictureUploadRequest pictureUploadRequest, Object inputSource, User loginUser);
+
+  /**
+   * 批量抓取和创建图片
+   *
+   * @param pictureUploadByBatchRequest 批量导入图片请求
+   * @param loginUser 当前登录用户
+   * @return 成功创建的图片数
+   */
+  // todo 已经定义了获取登录用户的工具
+  Integer uploadPictureByBatch(
+          PictureUploadByBatchRequest pictureUploadByBatchRequest, User loginUser);
 
   /**
    * 获取QueryWrapper
@@ -60,4 +69,20 @@ public interface PictureService extends IService<Picture> {
    * @param request 编辑图片请求
    */
   void validEditRequest(PictureEditRequest request);
+
+  /**
+   * 审核图片
+   *
+   * @param pictureReviewRequest 图片审核请求
+   * @param loginUser 当前登录用户
+   */
+  void doPictureReview(PictureReviewRequest pictureReviewRequest, User loginUser);
+
+  /**
+   * 补充审核参数
+   *
+   * @param picture 图片
+   * @param loginUser 当前登录用户
+   */
+  void fillReviewParams(Picture picture, User loginUser);
 }

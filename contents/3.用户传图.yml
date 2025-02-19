@@ -1,17 +1,47 @@
 req:
+  #各子模块的增查改删
   - crud:
-    #各子模块的增查改删
+    增: 用户上传图片、通过URL导入图片、管理员批量抓取图片
+    查:
+    改: 管理员审核图片
+    删:
 plan:
+  # 工作流程
   - workflow:
-    # 工作流程
-  - interface:
+    图片审核状态流转:
+      1、默认状态“待审核”，管理员可修改为“通过”或“拒绝”
+      2、已拒绝的图片可以重新审核，已通过的图片也可以改回拒绝
+      3、管理员上传或更新图片，图片自动过审并自动填充审核参数（审核状态、审核信息、审核人、审核时间）
+      4、用户编辑图片后，图片状态重置为“待审核”，重复审核时可以重置审核参数
+      5、用户只能看到过审核的图片，而管理员可以看到所有图片，且可以根据状态对图片进行筛选
+      6、暂无需考虑并发问题
+    批量抓图和创建图片:
+      1、从搜素引擎抓取图片
+      2、确定抓取和导入规则
     # 接口设计
-  - database:
+  - interface:
     # 库表设计
+  - database:
+      图片表:
+        1、新增字段：审核状态、审核信息、审核人、审核时间
+        2、索引：基于审核状态的索引
 dev:
+  # exceptions、enums、aop、config、constants、utils、helpers
   - base:
-    # exceptions、enums、aop、config、constants、utils、helpers
+      enums:
+        1、PictureReviewStatusEnum
+  # dto（request）、bo（result）、po（entity）、vo
   - model:
-    # dto（request）、bo（result）、po（entity）、vo
+      dto:
+        1、PictureQueryRequest（新增审核字段）
+        2、PictureReviewRequest
+        3、PictureUploadRequest（新增URL相关字段）
+        4、PictureUploadByBatchRequest
+      po:
+        1、Picture（新增审核字段）
+  # mapper、service、controller
   - biz:
-    # mapper、service、controller
+      service:
+        1、PictureService、PictureServiceImpl
+      controller:
+        1、PictureController

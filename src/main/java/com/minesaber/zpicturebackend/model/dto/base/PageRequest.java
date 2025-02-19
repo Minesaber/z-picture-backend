@@ -7,7 +7,7 @@ import java.io.Serializable;
 /** 通用分页请求类 */
 @Data
 public class PageRequest implements Serializable {
-  private static final long serialVersionUID = -3190937833240379087L;
+  private static final long serialVersionUID = 1L;
 
   /** 当前页号 */
   private int current = 1;

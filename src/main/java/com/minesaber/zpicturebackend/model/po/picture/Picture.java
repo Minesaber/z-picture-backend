@@ -12,7 +12,7 @@ import java.util.Date;
 @Data
 @Builder
 public class Picture implements Serializable {
-  private static final long serialVersionUID = -1760072755397802478L;
+  private static final long serialVersionUID = 1L;
 
   /** id */
   @TableId(type = IdType.ASSIGN_ID)
@@ -62,4 +62,16 @@ public class Picture implements Serializable {
 
   /** 宽高比 */
   private Double picScale;
+
+  /** 审核状态：0-待审核; 1-通过; 2-拒绝 */
+  private Integer reviewStatus;
+
+  /** 审核信息 */
+  private String reviewMessage;
+
+  /** 审核人 ID */
+  private Long reviewerId;
+
+  /** 审核时间 */
+  private Date reviewTime;
 }

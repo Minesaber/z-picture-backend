@@ -3,7 +3,7 @@ package com.minesaber.zpicturebackend.controller;
 import com.aliyun.core.utils.IOUtils;
 import com.aliyun.oss.model.OSSObject;
 import com.minesaber.zpicturebackend.aop.annotation.AuthCheck;
-import com.minesaber.zpicturebackend.helpers.FileHelper;
+import com.minesaber.zpicturebackend.helpers.upload.PictureUploadHelper;
 import com.minesaber.zpicturebackend.model.vo.base.Response;
 import com.minesaber.zpicturebackend.utils.ResultUtils;
 import com.minesaber.zpicturebackend.constants.UserConstant;
@@ -26,7 +26,7 @@ public class FileController {
   @Resource private OssHelper ossHelper;
 
   /** 其他操作使用文件工具完成 */
-  @Resource private FileHelper fileHelper;
+  @Resource private PictureUploadHelper pictureUploadHelper;
 
   /**
    * 测试：上传文件 使用缓存文件的方式

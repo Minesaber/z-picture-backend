@@ -1,10 +1,13 @@
 package com.minesaber.zpicturebackend.constants;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /** 文件常量 */
 public interface FileConstant {
+
   /** 1MB的字节数 */
   Long MB = (long) (1024 * 1024);
 
@@ -31,4 +34,7 @@ public interface FileConstant {
 
   /** 单词请求最大记录条数 */
   Integer RECORDS_MAX_COUNT = 20;
+
+  /** 单次导入图片最大数量 */
+  Integer IMPORT_MAX_COUNT = 30;
 }

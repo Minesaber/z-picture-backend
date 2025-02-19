@@ -1,17 +1,17 @@
 req:
+  #各子模块的增查改删
   - crud:
-    #各子模块的增查改删
 plan:
+  # 工作流程
   - workflow:
-    # 工作流程
-  - interface:
     # 接口设计
-  - database:
+  - interface:
     # 库表设计
+  - database:
 dev:
+  # exceptions、enums、aop、config、constants、utils、helpers
   - base:
-    # exceptions、enums、aop、config、constants、utils、helpers
-  - model:
     # dto（request）、bo（result）、po（entity）、vo
-  - biz:
+  - model:
     # mapper、service、controller
+  - biz:

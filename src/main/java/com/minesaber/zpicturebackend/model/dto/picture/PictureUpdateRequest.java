@@ -8,7 +8,7 @@ import lombok.Data;
 /** 图片更新请求 */
 @Data
 public class PictureUpdateRequest implements Serializable {
-  private static final long serialVersionUID = 6551635345541078607L;
+  private static final long serialVersionUID = 1L;
 
   /** id */
   private Long id;

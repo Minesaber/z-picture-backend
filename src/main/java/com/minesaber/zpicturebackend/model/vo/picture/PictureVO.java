@@ -15,7 +15,7 @@ import java.util.List;
 /** 图片视图 */
 @Data
 public class PictureVO implements Serializable {
-  private static final long serialVersionUID = 6893035001788805957L;
+  private static final long serialVersionUID = 1L;
 
   /** id */
   @TableId(type = IdType.ASSIGN_ID)

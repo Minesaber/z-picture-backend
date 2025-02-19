@@ -7,7 +7,7 @@ import lombok.Data;
 /** 图片编辑请求 */
 @Data
 public class PictureEditRequest implements Serializable {
-  private static final long serialVersionUID = 1404114120396656874L;
+  private static final long serialVersionUID = 1L;
 
   /** id */
   private Long id;

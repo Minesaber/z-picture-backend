@@ -10,7 +10,7 @@ import java.util.Date;
 /** 用户视图（脱敏） */
 @Data
 public class UserVO implements Serializable {
-  private static final long serialVersionUID = 1570036958556488294L;
+  private static final long serialVersionUID = 1L;
 
   /** id */
   private Long id;
