@@ -2,6 +2,10 @@ server:
   port: 88
   servlet:
     context-path: /api
+    session:
+      cookie:
+        # 默认有效期一周
+        max-age: 604800
 
 spring:
   application:
@@ -12,6 +16,10 @@ spring:
   servlet:
     multipart:
       max-file-size: 10MB
+  session:
+    store-type: redis
+    # 默认有效期一周
+    timeout: 604800
 
 mybatis-plus:
   configuration:

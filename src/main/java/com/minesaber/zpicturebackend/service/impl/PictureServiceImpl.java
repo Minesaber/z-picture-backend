@@ -11,6 +11,7 @@ import com.minesaber.zpicturebackend.constants.FileConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 import com.minesaber.zpicturebackend.enums.PictureReviewStatus;
 import com.minesaber.zpicturebackend.exception.BusinessException;
+import com.minesaber.zpicturebackend.helpers.OssHelper;
 import com.minesaber.zpicturebackend.helpers.upload.FileUploadTemplate;
 import com.minesaber.zpicturebackend.helpers.upload.PictureUploadHelper;
 import com.minesaber.zpicturebackend.helpers.upload.UrlUploadHelper;
@@ -31,6 +32,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -45,15 +48,17 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
   @Resource private UserService userService;
   @Resource private PictureUploadHelper pictureUploadHelper;
   @Resource private UrlUploadHelper urlUploadHelper;
+  @Autowired private OssHelper ossHelper;
 
   @Override
   public PictureVO uploadPicture(
       PictureUploadRequest pictureUploadRequest, Object inputSource, User loginUser) {
     Long id = pictureUploadRequest.getId();
     // 更新图片需要做好参数检查
+    Picture oldPicture = null;
     if (id != null) {
       // 查询图片是否存在
-      Picture oldPicture = getById(id);
+      oldPicture = getById(id);
       ThrowUtils.throwIf(oldPicture == null, ErrorCode.FORBIDDEN_ERROR, "资源不存在，或无权操作");
       // loginUserId是否与userId相同（或者当前登录用户为管理员）
       Long userId = oldPicture.getUserId();
@@ -76,6 +81,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         fileUploadTemplate.uploadPicture(pathPrefix, inputSource);
     // 操作数据库，更新图片记录
     String url = uploadPictureResult.getUrl();
+    String thumbnailUrl = uploadPictureResult.getThumbnailUrl();
     // todo 已支持外层传递图片名称
     // result中name默认为解析的originalFilename去除后缀，而依赖外部参数构造的name为pictureUploadByBatchRequest.getNamePrefix()+(uploadCount+1)
     String name = uploadPictureResult.getName();
@@ -90,6 +96,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     Picture picture =
         Picture.builder()
             .url(url)
+            .thumbnailUrl(thumbnailUrl)
             .name(name)
             .userId(loginUser.getId())
             .picSize(picSize)
@@ -101,6 +108,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     if (id != null) {
       picture.setId(id);
       picture.setEditTime(new Date());
+      // 更新时，清理老图片，缩略图如果存在也会被清理
+      cleanOldPicture(oldPicture);
+      // todo 原图仍被保存，且未追踪
     }
     // 补充审核参数
     fillReviewParams(picture, loginUser);
@@ -342,6 +352,26 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     } else {
       // 非管理员，创建和编辑都需要等待后续审核
       picture.setReviewStatus(PictureReviewStatus.REVIEWING.getValue());
+    }
+  }
+
+  // todo @Async默认使用SimpleAsyncTaskExecutor
+  @Async
+  @Override
+  public void cleanOldPicture(Picture oldPicture) {
+    // 判断待删除图片是否被多条记录使用
+    String pictureUrl = oldPicture.getUrl();
+    long count = this.lambdaQuery().eq(Picture::getUrl, pictureUrl).count();
+    // 有不止一条记录用到了该图片，不清理
+    if (count > 1) {
+      return;
+    }
+    // 删除图片、缩略图
+    // todo 需要考虑缩略图也可能被多条记录使用的情况
+    ossHelper.deleteObject(pictureUrl);
+    String thumbnailUrl = oldPicture.getThumbnailUrl();
+    if (StrUtil.isNotBlank(thumbnailUrl)) {
+      ossHelper.deleteObject(thumbnailUrl);
     }
   }
 }

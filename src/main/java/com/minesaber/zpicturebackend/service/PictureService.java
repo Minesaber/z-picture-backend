@@ -6,7 +6,6 @@ import com.minesaber.zpicturebackend.model.dto.picture.*;
 import com.minesaber.zpicturebackend.model.po.picture.Picture;
 import com.minesaber.zpicturebackend.model.po.user.User;
 import com.minesaber.zpicturebackend.model.vo.picture.PictureVO;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,7 +18,8 @@ public interface PictureService extends IService<Picture> {
    * @param loginUser 当前登录图片
    * @return 视图
    */
-  PictureVO uploadPicture(PictureUploadRequest pictureUploadRequest, Object inputSource, User loginUser);
+  PictureVO uploadPicture(
+      PictureUploadRequest pictureUploadRequest, Object inputSource, User loginUser);
 
   /**
    * 批量抓取和创建图片
@@ -30,7 +30,7 @@ public interface PictureService extends IService<Picture> {
    */
   // todo 已经定义了获取登录用户的工具
   Integer uploadPictureByBatch(
-          PictureUploadByBatchRequest pictureUploadByBatchRequest, User loginUser);
+      PictureUploadByBatchRequest pictureUploadByBatchRequest, User loginUser);
 
   /**
    * 获取QueryWrapper
@@ -85,4 +85,11 @@ public interface PictureService extends IService<Picture> {
    * @param loginUser 当前登录用户
    */
   void fillReviewParams(Picture picture, User loginUser);
+
+  /**
+   * 清理图片文件
+   *
+   * @param oldPicture 待删除图片
+   */
+  void cleanOldPicture(Picture oldPicture);
 }

@@ -171,8 +171,8 @@ public class PictureController {
    * @param request 图片查询请求
    * @return 图片列表（脱敏）
    */
-  @Deprecated
-  // @PostMapping("/list/page/vo")
+  // @Deprecated
+  @PostMapping("/list/page/vo")
   @AuthCheck
   public Response<Page<PictureVO>> getPictureVOByPage(@RequestBody PictureQueryRequest request) {
     int current = request.getCurrent();
@@ -197,9 +197,10 @@ public class PictureController {
    * @param request request
    * @return 图片列表（脱敏）
    */
-  @PostMapping("/list/page/vo")
+  // todo 需要更细粒度的缓存，否则影响正常更新图和新增图的查看
+  // @PostMapping("/list/page/vo")
   @AuthCheck
-  public Response<Page<PictureVO>> getPictureVOByPageWithCache(
+  public Response<Page<PictureVO>> getPictureVOByPage(
       @RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest request) {
     int current = pictureQueryRequest.getCurrent();
     int pageSize = pictureQueryRequest.getPageSize();
@@ -346,6 +347,8 @@ public class PictureController {
         "资源不存在，或无权操作");
     boolean result = DatabaseUtils.executeWithExceptionLogging(() -> pictureService.removeById(id));
     ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+    // 清理图片资源
+    pictureService.cleanOldPicture(picture);
     return ResultUtils.success(null);
   }
 

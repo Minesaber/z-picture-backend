@@ -3,9 +3,14 @@ package com.minesaber.zpicturebackend.helpers.upload;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.img.ImgUtil;
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import com.aliyun.oss.common.utils.IOUtils;
+import com.aliyun.oss.model.GenericResult;
+import com.aliyuncs.unmarshaller.JsonUnmashaller;
 import com.minesaber.zpicturebackend.config.SystemConfig;
 import com.minesaber.zpicturebackend.constants.FileConstant;
 import com.minesaber.zpicturebackend.helpers.OssHelper;
@@ -73,8 +78,35 @@ public abstract class FileUploadTemplate {
       // 缓存流
       byte[] bytes = inputStream.readAllBytes();
       // 上传图片
-      ossHelper.putObject(key, new ByteArrayInputStream(bytes));
-      return getUploadPictureResult(key, originalFilename, bytes);
+      // todo 此处基于内存的流会被自动管理
+      ossHelper.putObject(key, new ByteArrayInputStream(bytes), null);
+      // todo 考虑oss中原图、转换图、缩略图的处理
+      UploadPictureResult uploadPictureResult =
+          getUploadPictureResult(key, originalFilename, bytes);
+      // todo 可以考虑本地化与云端处理的不同策略
+      // 使用占用空间更小的图片格式
+      GenericResult convertProcessResult = ossHelper.getConvertedImg(key);
+      InputStream convertResultStream = convertProcessResult.getResponse().getContent();
+      JSONObject convertJson =
+          JSONUtil.parseObj(IOUtils.readStreamAsString(convertResultStream, "UTF-8"));
+      convertResultStream.close();
+      String targetKey = convertJson.get("object", String.class);
+      Long fileSize = convertJson.get("fileSize", Long.class);
+      uploadPictureResult.setUrl(ossHelper.getBaseURL() + "/" + targetKey);
+      uploadPictureResult.setPicSize(fileSize);
+      uploadPictureResult.setPicFormat(FileConstant.IMG_END_TYPE);
+      // 超过阈值则引入缩略图，targetKey表示基于转换后的格式处理
+      if (fileSize > FileConstant.USE_THUMBNAIL_SIZE) {
+        GenericResult compressProcessResult = ossHelper.getCompressedImg(targetKey);
+        InputStream compressResultStream = compressProcessResult.getResponse().getContent();
+        String thumbnailUrl =
+            ossHelper.getBaseURL()
+                + "/"
+                + JSONUtil.parseObj(IOUtils.readStreamAsString(compressResultStream, "UTF-8"))
+                    .get("object", String.class);
+        uploadPictureResult.setThumbnailUrl(thumbnailUrl);
+      }
+      return uploadPictureResult;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

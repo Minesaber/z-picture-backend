@@ -3,6 +3,7 @@ package com.minesaber.zpicturebackend.controller;
 import com.aliyun.core.utils.IOUtils;
 import com.aliyun.oss.model.OSSObject;
 import com.minesaber.zpicturebackend.aop.annotation.AuthCheck;
+import com.minesaber.zpicturebackend.constants.FileConstant;
 import com.minesaber.zpicturebackend.helpers.upload.PictureUploadHelper;
 import com.minesaber.zpicturebackend.model.vo.base.Response;
 import com.minesaber.zpicturebackend.utils.ResultUtils;
