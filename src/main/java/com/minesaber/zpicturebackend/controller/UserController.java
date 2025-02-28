@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.minesaber.zpicturebackend.aop.annotation.AuthCheck;
-import com.minesaber.zpicturebackend.model.po.user.User;
+import com.minesaber.zpicturebackend.model.entity.user.User;
 import com.minesaber.zpicturebackend.model.vo.base.Response;
 import com.minesaber.zpicturebackend.model.vo.user.UserVO;
 import com.minesaber.zpicturebackend.utils.DatabaseUtils;
@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @RestController
@@ -36,7 +37,9 @@ public class UserController {
    * @param userRegisterRequest 用户注册请求
    * @return 注册结果：id
    */
+  // todo 补充同登录接口的检查规则
   @PostMapping("/register")
+  //  @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
   public Response<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
     // 1、检查参数
     ThrowUtils.throwIf(userRegisterRequest == null, ErrorCode.PARAMS_ERROR);
@@ -110,7 +113,7 @@ public class UserController {
     String salt = systemConfig.getSalt();
     String encryptPassword = DigestUtils.md5DigestAsHex((salt + defaultUserPassword).getBytes());
     // 3、添加
-    User user = User.builder().build();
+    User user = new User();
     BeanUtil.copyProperties(userAddRequest, user);
     user.setUserPassword(encryptPassword);
     boolean result = DatabaseUtils.executeWithExceptionLogging(() -> userService.save(user));
@@ -163,8 +166,10 @@ public class UserController {
     long pageSize = userQueryRequest.getPageSize();
     // 3、查询
     Page<User> userPage =
-        userService.page(
-            new Page<>(current, pageSize), userService.getQueryWrapper(userQueryRequest));
+        DatabaseUtils.executeWithExceptionLogging(
+            () ->
+                userService.page(
+                    new Page<>(current, pageSize), userService.getQueryWrapper(userQueryRequest)));
     long total = userPage.getTotal();
     List<User> records = userPage.getRecords();
     Page<UserVO> userVOPage = new Page<>(current, pageSize, total);
@@ -186,7 +191,7 @@ public class UserController {
     ThrowUtils.throwIf(
         userUpdateRequest == null || userUpdateRequest.getId() == null, ErrorCode.PARAMS_ERROR);
     // 2、更新
-    User user = User.builder().build();
+    User user = new User();
     BeanUtil.copyProperties(userUpdateRequest, user);
     boolean result = DatabaseUtils.executeWithExceptionLogging(() -> userService.updateById(user));
     ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);

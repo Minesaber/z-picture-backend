@@ -2,9 +2,10 @@ package com.minesaber.zpicturebackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.minesaber.zpicturebackend.api.ai.aliyun.model.CreateOutPaintingTaskResponse;
 import com.minesaber.zpicturebackend.model.dto.picture.*;
-import com.minesaber.zpicturebackend.model.po.picture.Picture;
-import com.minesaber.zpicturebackend.model.po.user.User;
+import com.minesaber.zpicturebackend.model.entity.picture.Picture;
+import com.minesaber.zpicturebackend.model.entity.user.User;
 import com.minesaber.zpicturebackend.model.vo.picture.PictureVO;
 
 import java.util.List;
@@ -57,6 +58,16 @@ public interface PictureService extends IService<Picture> {
   List<PictureVO> convertToPictureVOList(List<Picture> pictureList);
 
   /**
+   * 根据颜色搜索图片
+   *
+   * @param spaceId 图片id
+   * @param picColor 主色调
+   * @param loginUser 当前登录用户
+   * @return 图片视图
+   */
+  List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser);
+
+  /**
    * 更新图片记录时，检查参数
    *
    * @param request 更新图片请求
@@ -87,9 +98,51 @@ public interface PictureService extends IService<Picture> {
   void fillReviewParams(Picture picture, User loginUser);
 
   /**
+   * 编辑图片
+   *
+   * @param pictureEditRequest 图片编辑请求
+   * @param loginUser 当前登录用户
+   */
+  void editPicture(PictureEditRequest pictureEditRequest, User loginUser);
+
+  /**
+   * 批量编辑图片
+   *
+   * @param pictureEditByBatchRequest 图片批量编辑请求
+   * @param loginUser 当前登录用户
+   */
+  void editPictureByBatch(PictureEditByBatchRequest pictureEditByBatchRequest, User loginUser);
+
+  /**
+   * 创建扩图任务
+   *
+   * @param pictureOutPaintingRequest 扩图请求
+   * @param loginUser 当前登录用户
+   * @return 创建扩图任务响应
+   */
+  CreateOutPaintingTaskResponse createPictureOutPaintingTask(
+      PictureOutPaintingRequest pictureOutPaintingRequest, User loginUser);
+
+  /**
    * 清理图片文件
    *
    * @param oldPicture 待删除图片
    */
   void cleanOldPicture(Picture oldPicture);
+
+  /**
+   * 删除图片
+   *
+   * @param pictureId 待删除图片id
+   * @param loginUser 当前登录用户
+   */
+  void deletePicture(long pictureId, User loginUser);
+
+  /**
+   * 更新、删除的权限检查
+   *
+   * @param picture 待检查权限图片
+   * @param loginUser 当前登录用户
+   */
+  void checkPictureAuth(Picture picture, User loginUser);
 }

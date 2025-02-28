@@ -5,12 +5,10 @@ import cn.hutool.core.img.ImgUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.aliyun.oss.common.utils.IOUtils;
 import com.aliyun.oss.model.GenericResult;
-import com.aliyuncs.unmarshaller.JsonUnmashaller;
 import com.minesaber.zpicturebackend.config.SystemConfig;
 import com.minesaber.zpicturebackend.constants.FileConstant;
 import com.minesaber.zpicturebackend.helpers.OssHelper;
@@ -153,6 +151,8 @@ public abstract class FileUploadTemplate {
       int height = bufferedImage.getHeight();
       // 5、scale
       Double scale = NumberUtil.round(width * 1.0 / height, 2).doubleValue();
+      // 6、补充主色调
+      String picColor = ossHelper.getPicColor(key);
       return UploadPictureResult.builder()
           .url(url)
           .name(name)
@@ -161,6 +161,7 @@ public abstract class FileUploadTemplate {
           .picWidth(width)
           .picHeight(height)
           .picScale(scale)
+          .picColor(picColor)
           .build();
     } catch (IOException e) {
       throw new RuntimeException(e);

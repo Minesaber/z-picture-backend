@@ -3,7 +3,7 @@ package com.minesaber.zpicturebackend.utils;
 import com.minesaber.zpicturebackend.exception.BusinessException;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 
-/** 异常处理工具类 */
+/** 异常处理工具 */
 public class ThrowUtils {
   /**
    * 条件成立则抛异常

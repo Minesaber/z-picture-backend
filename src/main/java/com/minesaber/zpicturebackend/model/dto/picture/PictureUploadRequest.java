@@ -18,4 +18,7 @@ public class PictureUploadRequest implements Serializable {
   // todo 变量名称待规范
   /** 图片名称 */
   private String picName;
+
+  /** 空间 id */
+  private Long spaceId;
 }

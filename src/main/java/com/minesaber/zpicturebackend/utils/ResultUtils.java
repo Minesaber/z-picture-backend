@@ -3,7 +3,7 @@ package com.minesaber.zpicturebackend.utils;
 import com.minesaber.zpicturebackend.model.vo.base.Response;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 
-/** 响应结果工具类 */
+/** 响应结果工具 */
 public class ResultUtils {
   /**
    * 成功

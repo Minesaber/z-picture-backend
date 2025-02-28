@@ -1,9 +1,10 @@
 package com.minesaber.zpicturebackend.helpers;
 
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.aliyun.oss.ClientException;
+import com.aliyun.oss.HttpMethod;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;
 import com.aliyun.oss.common.utils.BinaryUtil;
@@ -11,16 +12,17 @@ import com.aliyun.oss.common.utils.IOUtils;
 import com.aliyun.oss.model.*;
 import com.minesaber.zpicturebackend.config.OssClientConfig;
 import com.minesaber.zpicturebackend.constants.FileConstant;
-import lombok.Builder;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.Formatter;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -34,6 +36,9 @@ public class OssHelper {
 
   /** OSS 客户端 */
   @Resource private OSS ossClient;
+
+  /** Redis 缓存 */
+  @Resource private RedisTemplate<String, String> redisTemplate;
 
   /**
    * 获取基础 URL
@@ -150,12 +155,71 @@ public class OssHelper {
   }
 
   /**
+   * 获取图片的主色调
+   *
+   * @param key 唯一键
+   * @return 查询结果
+   */
+  public String getPicColor(String key) {
+    GetObjectRequest getObjectRequest = new GetObjectRequest(ossClientConfig.getBucket(), key);
+    getObjectRequest.setProcess("image/average-hue");
+    OSSObject result = ossClient.getObject(getObjectRequest);
+    try (InputStream content = result.getResponse().getContent()) {
+      String json = IOUtils.readStreamAsString(content, "UTF-8");
+      return JSONUtil.parseObj(json).get("RGB", String.class);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * 删除对象
    *
    * @param key 待删除图片唯一键
    */
   public void deleteObject(String key) {
     ossClient.deleteObject(ossClientConfig.getBucket(), key);
+  }
+
+  /**
+   * 从URL中获取唯一键
+   *
+   * @param url URL地址
+   * @return 唯一键
+   */
+  public String getKeyFromUrl(String url) {
+    return StrUtil.subAfter(url, "com/", false);
+  }
+
+  /**
+   * 生成预签名URL
+   *
+   * @param key 需要临时访问文件的唯一键
+   * @param expiration 过期时间（毫秒值），不能超过一小时
+   * @return 预签名URL
+   */
+  public String genPresignedUrl(String key, Long expiration) {
+    expiration = Math.min(expiration, 3600 * 1000L);
+    // 首先读缓存
+    String cachedPreSignedUrl = redisTemplate.opsForValue().get(key);
+    if (cachedPreSignedUrl != null) {
+      return cachedPreSignedUrl;
+    }
+    // 找不到，则生成预签名URL并缓存
+    GeneratePresignedUrlRequest generatePresignedUrlRequest =
+        new GeneratePresignedUrlRequest(ossClientConfig.getBucket(), key, HttpMethod.GET);
+    Date date = new Date(new Date().getTime() + expiration);
+    generatePresignedUrlRequest.setExpiration(date);
+    String presignedUrl =
+        String.valueOf(ossClient.generatePresignedUrl(generatePresignedUrlRequest));
+    redisTemplate
+        .opsForValue()
+        .set(
+            key,
+            presignedUrl,
+            expiration - RandomUtil.randomLong(100, 1000),
+            TimeUnit.MILLISECONDS);
+    return presignedUrl;
   }
 
   /**

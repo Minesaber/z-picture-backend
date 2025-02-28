@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.minesaber.zpicturebackend.model.po.picture.Picture;
+import com.minesaber.zpicturebackend.model.entity.picture.Picture;
 import com.minesaber.zpicturebackend.model.vo.user.UserVO;
 import lombok.Data;
 
@@ -42,7 +42,7 @@ public class PictureVO implements Serializable {
   /** 创建用户id */
   private Long userId;
 
-  /** 创建用户视图 */
+  /** 补充：创建用户视图 */
   private UserVO userVO;
 
   /** 简介 */
@@ -69,6 +69,12 @@ public class PictureVO implements Serializable {
   /** 宽高比 */
   private Double picScale;
 
+  /** 图片主色调 */
+  private String picColor;
+
+  /** 空间 id */
+  private Long spaceId;
+
   /**
    * 对象转视图
    *
@@ -90,8 +96,8 @@ public class PictureVO implements Serializable {
    * @param pictureVO 图片视图
    * @return 图片
    */
-  public static Picture convertToPO(PictureVO pictureVO) {
-    Picture picture = Picture.builder().build();
+  public static Picture convertToEntity(PictureVO pictureVO) {
+    Picture picture = new Picture();
     BeanUtil.copyProperties(pictureVO, picture);
     // 转tags为字符串
     if (pictureVO.getTags() != null) picture.setTags(JSONUtil.toJsonStr(pictureVO.getTags()));

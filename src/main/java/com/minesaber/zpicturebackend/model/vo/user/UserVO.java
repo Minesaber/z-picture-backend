@@ -1,7 +1,7 @@
 package com.minesaber.zpicturebackend.model.vo.user;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.minesaber.zpicturebackend.model.po.user.User;
+import com.minesaber.zpicturebackend.model.entity.user.User;
 import lombok.Data;
 
 import java.io.Serializable;

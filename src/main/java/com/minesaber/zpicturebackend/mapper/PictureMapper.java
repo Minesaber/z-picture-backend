@@ -1,6 +1,12 @@
 package com.minesaber.zpicturebackend.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.minesaber.zpicturebackend.model.po.picture.Picture;
+import com.minesaber.zpicturebackend.model.entity.picture.Picture;
+import org.apache.ibatis.annotations.Param;
 
-public interface PictureMapper extends BaseMapper<Picture> {}
+import java.util.List;
+
+public interface PictureMapper extends BaseMapper<Picture> {
+  List<Picture> selectPictures(
+      @Param("spaceId") Long spaceId, @Param("pictureIds") List<Long> pictureIds);
+}

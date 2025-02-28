@@ -1,12 +1,38 @@
-package com.minesaber.zpicturebackend.utils;
+package com.minesaber.zpicturebackend.helpers;
 
+import com.alibaba.ttl.TransmittableThreadLocal;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
+import com.minesaber.zpicturebackend.model.bo.ClientInfo;
+import com.minesaber.zpicturebackend.utils.ThrowUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 
-public class RequestUtils {
+/**
+ * 线程本地变量工具
+ *
+ * @param <T> 线程本地变量类型
+ */
+// todo 之后考虑使用JWT再采用这个方案
+@Component
+public class ThreadInfoHelper<T> {
+  private static final TransmittableThreadLocal<ClientInfo> contexts =
+      new TransmittableThreadLocal<>();
+
+  public static void addInfo(ClientInfo info) {
+    contexts.set(info);
+  }
+
+  public static ClientInfo getInfo() {
+    return contexts.get();
+  }
+
+  public static void clear() {
+    contexts.remove();
+  }
+
   /**
    * 获取HttpServletRequest实例
    *

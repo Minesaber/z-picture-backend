@@ -1,5 +1,5 @@
 server:
-  port: 88
+  port: 1280
   servlet:
     context-path: /api
     session:
@@ -22,6 +22,7 @@ spring:
     timeout: 604800
 
 mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml
   configuration:
     # 自动映射为驼峰字段
     map-underscore-to-camel-case: false

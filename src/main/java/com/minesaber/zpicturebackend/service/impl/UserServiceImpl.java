@@ -5,7 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.minesaber.zpicturebackend.enums.UserRole;
-import com.minesaber.zpicturebackend.model.po.user.User;
+import com.minesaber.zpicturebackend.model.entity.user.User;
 import com.minesaber.zpicturebackend.model.vo.user.UserVO;
 import com.minesaber.zpicturebackend.utils.DatabaseUtils;
 import com.minesaber.zpicturebackend.config.SystemConfig;
@@ -21,13 +21,20 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
   @Resource private SystemConfig systemConfig;
+  private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+  private static final Validator validator = factory.getValidator();
 
   @Override
   public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -63,13 +70,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     // 3、加密
     String encryptPassword = getEncryptPassword(userPassword);
     // 4、初始化对象并存储
-    User user =
-        User.builder()
-            .userAccount(userAccount)
-            .userPassword(encryptPassword)
-            .userRole(UserConstant.DEFAULT_ROLE)
-            .userName(systemConfig.getDefaultUserName())
-            .build();
+    User user = new User();
+    user.setUserAccount(userAccount);
+    user.setUserPassword(encryptPassword);
+    user.setUserRole(UserConstant.DEFAULT_ROLE);
+    user.setUserName(systemConfig.getDefaultUserName());
     boolean saveResult = DatabaseUtils.executeWithExceptionLogging(() -> save(user));
     ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "注册失败");
     return user.getId();
@@ -77,6 +82,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
   @Override
   public UserVO userLogin(String userAccount, String userPassword, HttpServletRequest request) {
+    User user = new User();
+    user.setUserAccount(userAccount);
+    user.setUserPassword(userPassword);
+    Set<ConstraintViolation<User>> violations = validator.validate(user);
+    // todo 之后可考虑隐藏详细信息
+    StringBuilder sb = null;
+    if (!violations.isEmpty()) {
+      sb = new StringBuilder();
+      for (ConstraintViolation<User> violation : violations) {
+        sb.append(violation.getMessage()).append("\n");
+      }
+    }
+    ThrowUtils.throwIf(!violations.isEmpty(), ErrorCode.PARAMS_ERROR, String.valueOf(sb));
     // todo 已经登录用户直接跳转首页
     // todo 对于已删除用户的处理
     // 1、检查参数
@@ -89,12 +107,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     QueryWrapper<User> queryWrapper = new QueryWrapper<>();
     queryWrapper.eq("userAccount", userAccount);
     queryWrapper.eq("userPassword", encryptPassword);
-    User user = DatabaseUtils.executeWithExceptionLogging(() -> baseMapper.selectOne(queryWrapper));
-    ThrowUtils.throwIf(user == null, ErrorCode.PARAMS_ERROR, "用户账号不存在或密码错误");
+    User oldUser = DatabaseUtils.executeWithExceptionLogging(() -> baseMapper.selectOne(queryWrapper));
+    ThrowUtils.throwIf(oldUser == null, ErrorCode.PARAMS_ERROR, "用户账号不存在或密码错误");
     // 4、保存用户的登录状态
     HttpSession session = request.getSession();
-    session.setAttribute(UserConstant.LOGIN_USER_STATE, user);
-    return UserVO.convertToUserVO(user);
+    session.setAttribute(UserConstant.LOGIN_USER_STATE, oldUser);
+    return UserVO.convertToUserVO(oldUser);
   }
 
   /**

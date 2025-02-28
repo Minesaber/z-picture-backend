@@ -1,0 +1,63 @@
+@startuml
+!theme reddress-darkred
+skinparam backgroundColor #454545
+skinparam DefaultFontName "黑体"
+skinparam DefaultFontSize 15
+|<color red>流程与场景|
+start
+
+
+|<color green>信息检查|
+if (<color lightgreen>更新 or 新增) then (更新（待删除实体的检查）)
+  if (是否存在（原图）) then (找不到)
+    :<color:yellow>业务异常: 资源不存在或无权操作;
+    stop
+  else
+    if(是否有权限（基于原图 spaceId）) then(公共图库)
+      if (管理员或图片的创建者) then (否)
+          :<color:yellow>业务异常: 资源不存在或无权操作;
+          stop
+      else(<color skyblue>更新公有图库)
+      endif
+    else(私有空间)
+      if(私有空间的创建者) then (否)
+          :<color:yellow>业务异常: 资源不存在或无权操作;
+          stop
+      else(<color skyblue>更新私有空间)
+      endif
+    endif
+  endif
+else (新增（查询结果实体的检查）)
+    if (向私有空间新增) then (是)
+        if (是否存在（查询 spaceId 的空间信息）) then (找不到)
+        :<color:yellow>业务异常: 空间不存在或无权操作;
+        stop
+        else
+            if(是否有权限（私有空间的创建者）) then(无)
+                :<color:yellow>业务异常: 空间不存在或无权操作;
+                stop
+            elseif(其他检查（大小剩余和条数剩余的情况）) then(已达限制)
+                :<color:yellow>业务异常: 空间已满;
+                stop
+            else(<color skyblue>新增私有空间)
+            endif
+        endif
+    else(<color skyblue>新增公共图库)
+    endif
+endif
+
+|<color green>信息构造与流转|
+:确定上传参数（路径前缀）;
+:确定上传方式，并执行上传（OSS）;
+:确定入库参数（上传结果字段、自定义名称、补充审核参数）;
+:<color lightgreen>更新（补充 id 和 editTime、清理原图）;
+:执行入库（MySQL）;
+if (操作失败?) then (是)
+  :<color:yellow>业务异常: 数据库异常;
+  stop
+endif
+:返回结果（脱敏）;
+
+
+stop
+@enduml

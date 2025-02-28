@@ -4,7 +4,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 
-/** 通用分页请求类 */
+/** 通用分页请求 */
 @Data
 public class PageRequest implements Serializable {
   private static final long serialVersionUID = 1L;

@@ -1,0 +1,16 @@
+package com.minesaber.zpicturebackend.model.dto.space;
+
+import java.io.Serializable;
+import lombok.Data;
+
+/** 空间添加请求 */
+@Data
+public class SpaceAddRequest implements Serializable {
+  private static final long serialVersionUID = 1L;
+
+  /** 空间名称 */
+  private String spaceName;
+
+  /** 空间级别：0-普通版 1-专业版 2-旗舰版 */
+  private Integer spaceLevel;
+}

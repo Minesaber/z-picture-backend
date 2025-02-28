@@ -22,6 +22,7 @@ import java.io.InputStream;
 @RestController
 @RequestMapping("/file")
 @Slf4j
+@Deprecated
 public class FileController {
   /** 基础操作直接使用OSS 工具即可 */
   @Resource private OssHelper ossHelper;

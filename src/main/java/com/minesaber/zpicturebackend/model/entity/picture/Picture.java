@@ -1,7 +1,6 @@
-package com.minesaber.zpicturebackend.model.po.picture;
+package com.minesaber.zpicturebackend.model.entity.picture;
 
 import com.baomidou.mybatisplus.annotation.*;
-import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -10,8 +9,9 @@ import java.util.Date;
 /** 图片 */
 @TableName(value = "picture")
 @Data
-@Builder
+// todo 分析为什么使用builder会隐藏构造器，以及为什么会导致ORM框架无法映射字段
 public class Picture implements Serializable {
+  @TableField(exist = false)
   private static final long serialVersionUID = 1L;
 
   /** id */
@@ -66,6 +66,9 @@ public class Picture implements Serializable {
   /** 宽高比 */
   private Double picScale;
 
+  /** 图片主色调 */
+  private String picColor;
+
   /** 审核状态：0-待审核; 1-通过; 2-拒绝 */
   private Integer reviewStatus;
 
@@ -77,4 +80,7 @@ public class Picture implements Serializable {
 
   /** 审核时间 */
   private Date reviewTime;
+
+  /** 空间 id */
+  private Long spaceId;
 }

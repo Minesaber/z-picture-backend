@@ -6,11 +6,14 @@ import java.util.List;
 /** 文件常量 */
 public interface FileConstant {
 
+  /** 1KB的字节数 */
+  Long KB = (long) 1024;
+
   /** 1MB的字节数 */
   Long MB = (long) (1024 * 1024);
 
-  /** 1KB的字节数 */
-  Long KB = (long) 1024;
+  /** 1GB的字节数 */
+  Long GB = (long) (1024 * 1024 * 1024);
 
   /** 最大大小（单位为MB） */
   Integer FILE_MAX_SIZE = 10;
@@ -53,4 +56,7 @@ public interface FileConstant {
 
   /** 生成缩略图的阈值，大于这个值则生成缩略图 */
   Long USE_THUMBNAIL_SIZE = 50 * KB;
+
+  /** 空间名称最大长度 */
+  Integer SPACE_NAME_MAX_LENGTH = 18;
 }

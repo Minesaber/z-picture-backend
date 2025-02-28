@@ -9,25 +9,34 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.minesaber.zpicturebackend.aop.annotation.AuthCheck;
+import com.minesaber.zpicturebackend.api.ai.aliyun.helpers.PictureAIHelper;
+import com.minesaber.zpicturebackend.api.ai.aliyun.model.CreateOutPaintingTaskRequest;
+import com.minesaber.zpicturebackend.api.ai.aliyun.model.CreateOutPaintingTaskResponse;
+import com.minesaber.zpicturebackend.api.ai.aliyun.model.OutPaintingTaskResult;
+import com.minesaber.zpicturebackend.api.imagesearch.baidu.ImageSearchApiFacade;
+import com.minesaber.zpicturebackend.api.imagesearch.baidu.model.ImageSearchResult;
 import com.minesaber.zpicturebackend.constants.FileConstant;
 import com.minesaber.zpicturebackend.constants.UserConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 import com.minesaber.zpicturebackend.enums.PictureReviewStatus;
-import com.minesaber.zpicturebackend.enums.UserRole;
+import com.minesaber.zpicturebackend.exception.BusinessException;
+import com.minesaber.zpicturebackend.helpers.OssHelper;
 import com.minesaber.zpicturebackend.model.dto.base.DeleteRequest;
 import com.minesaber.zpicturebackend.model.dto.picture.*;
-import com.minesaber.zpicturebackend.model.po.picture.Picture;
-import com.minesaber.zpicturebackend.model.po.user.User;
+import com.minesaber.zpicturebackend.model.entity.picture.Picture;
+import com.minesaber.zpicturebackend.model.entity.space.Space;
+import com.minesaber.zpicturebackend.model.entity.user.User;
 import com.minesaber.zpicturebackend.model.vo.base.Response;
 import com.minesaber.zpicturebackend.model.vo.picture.PictureCategoryTagVO;
 import com.minesaber.zpicturebackend.model.vo.picture.PictureVO;
 import com.minesaber.zpicturebackend.service.PictureService;
+import com.minesaber.zpicturebackend.service.SpaceService;
 import com.minesaber.zpicturebackend.service.UserService;
 import com.minesaber.zpicturebackend.utils.DatabaseUtils;
 import com.minesaber.zpicturebackend.utils.ResultUtils;
 import com.minesaber.zpicturebackend.utils.ThrowUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.DigestUtils;
@@ -38,7 +47,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -49,6 +57,8 @@ public class PictureController {
   @Resource private PictureService pictureService;
   @Resource private UserService userService;
   @Resource private StringRedisTemplate stringRedisTemplate;
+  @Resource private SpaceService spaceService;
+  @Resource private PictureAIHelper pictureAIHelper;
 
   // todo 可以考虑使用单独的service提供缓存服务
   /** 本地缓存 */
@@ -138,11 +148,16 @@ public class PictureController {
    * @param id id
    * @return 图片（脱敏）
    */
+  // todo 此次用户可以通过id查看未过审图片
   @GetMapping("/get/vo")
   @AuthCheck
-  public Response<PictureVO> getPictureVOById(Long id) {
-    // todo 此次用户可以通过id查看未过审图片
+  public Response<PictureVO> getPictureVOById(Long id, HttpServletRequest request) {
     Picture picture = getPictureById(id).getData();
+    User loginUser = userService.getLoginUser(request);
+    if (picture.getSpaceId() != null) {
+      ThrowUtils.throwIf(
+          !picture.getUserId().equals(loginUser.getId()), ErrorCode.FORBIDDEN_ERROR, "资源不存在，或无权操作");
+    }
     PictureVO pictureVO = pictureService.convertToPictureVO(picture);
     return ResultUtils.success(pictureVO);
   }
@@ -168,20 +183,31 @@ public class PictureController {
   /**
    * 分页查询图片
    *
-   * @param request 图片查询请求
+   * @param pictureQueryRequest 图片查询请求
    * @return 图片列表（脱敏）
    */
-  // @Deprecated
   @PostMapping("/list/page/vo")
   @AuthCheck
-  public Response<Page<PictureVO>> getPictureVOByPage(@RequestBody PictureQueryRequest request) {
-    int current = request.getCurrent();
-    int pageSize = request.getPageSize();
+  public Response<Page<PictureVO>> getPictureVOByPage(
+      @RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest request) {
+    int current = pictureQueryRequest.getCurrent();
+    int pageSize = pictureQueryRequest.getPageSize();
+    // 公有图库
     // 限制每次获取数据的条数
     ThrowUtils.throwIf(pageSize > FileConstant.RECORDS_MAX_COUNT, ErrorCode.PARAMS_ERROR);
-    // 普通用户只能看到过审的图片
-    request.setReviewStatus(PictureReviewStatus.PASS.getValue());
-    Page<Picture> page = getPictureByPage(request).getData();
+    Long spaceId = pictureQueryRequest.getSpaceId();
+    if (spaceId == null) {
+      pictureQueryRequest.setReviewStatus(PictureReviewStatus.PASS.getValue());
+      pictureQueryRequest.setNullSpaceId(true);
+    } else {
+      // 私有空间
+      User loginUser = userService.getLoginUser(request);
+      Space space = spaceService.getById(spaceId);
+      ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在，或无权操作");
+      ThrowUtils.throwIf(
+          !loginUser.getId().equals(space.getUserId()), ErrorCode.NO_AUTH_ERROR, "空间不存在，或无权操作");
+    }
+    Page<Picture> page = getPictureByPage(pictureQueryRequest).getData();
     long total = page.getTotal();
     List<Picture> records = page.getRecords();
     Page<PictureVO> pictureVOPage = new Page<>(current, pageSize, total);
@@ -194,14 +220,13 @@ public class PictureController {
    * 分页查询图片（带缓存）
    *
    * @param pictureQueryRequest 图片查询请求
-   * @param request request
    * @return 图片列表（脱敏）
    */
   // todo 需要更细粒度的缓存，否则影响正常更新图和新增图的查看
   // @PostMapping("/list/page/vo")
   @AuthCheck
   public Response<Page<PictureVO>> getPictureVOByPage(
-      @RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest request) {
+      @RequestBody PictureQueryRequest pictureQueryRequest) {
     int current = pictureQueryRequest.getCurrent();
     int pageSize = pictureQueryRequest.getPageSize();
     // 限制每次获取数据的条数
@@ -209,7 +234,7 @@ public class PictureController {
     // 普通用户只能看到过审的图片
     pictureQueryRequest.setReviewStatus(PictureReviewStatus.PASS.getValue());
     // todo 可以考虑使用单独的service提供多级缓存服务
-    // 1. 先从本地缓存中查询
+    // 先从本地缓存中查询
     String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
     String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
     String cacheKey = String.format("zpicture:getPictureVOByPageWithCache:%s", hashKey);
@@ -218,7 +243,7 @@ public class PictureController {
       Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
       return ResultUtils.success(cachedPage);
     }
-    // 2. 本地缓存未命中，查询 Redis
+    // 本地缓存未命中，查询 Redis
     ValueOperations<String, String> opsForValue = stringRedisTemplate.opsForValue();
     cachedValue = opsForValue.get(cacheKey);
     if (cachedValue != null) {
@@ -227,20 +252,55 @@ public class PictureController {
       Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
       return ResultUtils.success(cachedPage);
     }
-    // 3. 都未命中，则查询数据库并更新多级缓存
+    // 都未命中，则查询数据库并更新多级缓存
     Page<Picture> page = getPictureByPage(pictureQueryRequest).getData();
     long total = page.getTotal();
     List<Picture> records = page.getRecords();
     Page<PictureVO> pictureVOPage = new Page<>(current, pageSize, total);
     List<PictureVO> pictureVORecords = pictureService.convertToPictureVOList(records);
     pictureVOPage.setRecords(pictureVORecords);
-    // 4. 更新缓存
+    // 更新缓存
     // todo 可以考虑压缩数据
     String cacheValue = JSONUtil.toJsonStr(pictureVOPage);
     int cacheExpireTime = 300 + RandomUtil.randomInt(0, 300);
     LOCAL_CACHE.put(cacheKey, cacheValue);
     opsForValue.set(cacheKey, cacheValue, cacheExpireTime, TimeUnit.SECONDS);
     return ResultUtils.success(pictureVOPage);
+  }
+
+  /** 以图搜图 */
+  @PostMapping("/search/picture")
+  @AuthCheck
+  public Response<List<ImageSearchResult>> searchPictureByPicture(
+      @RequestBody PictureSearchByPictureRequest pictureSearchByPictureRequest) {
+    ThrowUtils.throwIf(pictureSearchByPictureRequest == null, ErrorCode.PARAMS_ERROR);
+    Long pictureId = pictureSearchByPictureRequest.getPictureId();
+    ThrowUtils.throwIf(pictureId == null || pictureId <= 0, ErrorCode.PARAMS_ERROR);
+    // todo 查询优化：可以不用查完整的数据记录
+    Picture picture =
+        DatabaseUtils.executeWithExceptionLogging(() -> pictureService.getById(pictureId));
+    ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
+    // 临时转为png再查询
+    // todo 需要补充预签名处理
+    // todo 后续可以考虑只使用质量压缩，设置不同级别，原图->压缩图->缩略图
+    List<ImageSearchResult> resultList =
+        ImageSearchApiFacade.searchImage(picture.getUrl() + "?x-oss-process=image/format,png");
+    return ResultUtils.success(resultList);
+  }
+
+  /** 按照颜色搜索 */
+  @PostMapping("/search/color")
+  @AuthCheck
+  public Response<List<PictureVO>> searchPictureByColor(
+      @RequestBody PictureSearchByColorRequest searchPictureByColorRequest,
+      HttpServletRequest request) {
+    ThrowUtils.throwIf(searchPictureByColorRequest == null, ErrorCode.PARAMS_ERROR);
+    String picColor = searchPictureByColorRequest.getPicColor();
+    Long spaceId = searchPictureByColorRequest.getSpaceId();
+    User loginUser = userService.getLoginUser(request);
+    List<PictureVO> pictureVOList =
+        pictureService.searchPictureByColor(spaceId, picColor, loginUser);
+    return ResultUtils.success(pictureVOList);
   }
 
   /**
@@ -255,7 +315,7 @@ public class PictureController {
   public Response<Void> updatePictureById(
       @RequestBody PictureUpdateRequest pictureUpdateRequest, HttpServletRequest request) {
     pictureService.validUpdateRequest(pictureUpdateRequest);
-    Picture picture = Picture.builder().build();
+    Picture picture = new Picture();
     // todo 数组转JSON待检查
     BeanUtil.copyProperties(pictureUpdateRequest, picture);
     Long id = pictureUpdateRequest.getId();
@@ -279,30 +339,12 @@ public class PictureController {
    */
   @PostMapping("/edit")
   @AuthCheck
+  // todo 字符串转JSON需要手动处理，hutool会忽略双引号
   public Response<Void> editPictureById(
       @RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest request) {
     pictureService.validEditRequest(pictureEditRequest);
-    Picture picture = Picture.builder().build();
-    // todo 字符串转JSON需要手动处理，hutool会忽略双引号
-    BeanUtils.copyProperties(pictureEditRequest, picture);
-    picture.setTags(JSONUtil.toJsonStr(pictureEditRequest.getTags()));
-    // 补充编辑时间
-    picture.setEditTime(new Date());
-    Long id = pictureEditRequest.getId();
-    Picture oldPicture =
-        DatabaseUtils.executeWithExceptionLogging(() -> pictureService.getById(id));
-    ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
-    // 检查权限
     User loginUser = userService.getLoginUser(request);
-    ThrowUtils.throwIf(
-        !oldPicture.getUserId().equals(loginUser.getId())
-            && UserRole.getEnumByValue(loginUser.getUserRole()) != UserRole.ADMIN,
-        ErrorCode.NO_AUTH_ERROR);
-    // 补充审核参数
-    pictureService.fillReviewParams(picture, loginUser);
-    boolean result =
-        DatabaseUtils.executeWithExceptionLogging(() -> pictureService.updateById(picture));
-    ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+    pictureService.editPicture(pictureEditRequest, loginUser);
     return ResultUtils.success(null);
   }
 
@@ -323,6 +365,42 @@ public class PictureController {
     return ResultUtils.success(true);
   }
 
+  /** 批量编辑图片 */
+  @PostMapping("/edit/batch")
+  @AuthCheck
+  public Response<Boolean> editPictureByBatch(
+      @RequestBody PictureEditByBatchRequest pictureEditByBatchRequest,
+      HttpServletRequest request) {
+    ThrowUtils.throwIf(pictureEditByBatchRequest == null, ErrorCode.PARAMS_ERROR);
+    User loginUser = userService.getLoginUser(request);
+    pictureService.editPictureByBatch(pictureEditByBatchRequest, loginUser);
+    return ResultUtils.success(true);
+  }
+
+  /** 创建扩图任务 */
+  @PostMapping("/out_painting/create_task")
+  @AuthCheck
+  public Response<CreateOutPaintingTaskResponse> createPictureOutPaintingTask(
+      @RequestBody PictureOutPaintingRequest pictureOutPaintingRequest,
+      HttpServletRequest request) {
+    if (pictureOutPaintingRequest == null || pictureOutPaintingRequest.getPictureId() == null) {
+      throw new BusinessException(ErrorCode.PARAMS_ERROR);
+    }
+    User loginUser = userService.getLoginUser(request);
+    CreateOutPaintingTaskResponse response =
+        pictureService.createPictureOutPaintingTask(pictureOutPaintingRequest, loginUser);
+    return ResultUtils.success(response);
+  }
+
+  /** 查询扩图任务结果 */
+  @GetMapping("/out_painting/get_task")
+  @AuthCheck
+  public Response<OutPaintingTaskResult> getPictureOutPaintingTask(String taskId) {
+    ThrowUtils.throwIf(StrUtil.isBlank(taskId), ErrorCode.PARAMS_ERROR);
+    OutPaintingTaskResult taskResult = pictureAIHelper.getOutPaintingTask(taskId);
+    return ResultUtils.success(taskResult);
+  }
+
   /**
    * 根据id删除图片（管理员/用户）
    *
@@ -336,24 +414,14 @@ public class PictureController {
     ThrowUtils.throwIf(
         deleteRequest == null || deleteRequest.getId() == null || deleteRequest.getId() <= 0,
         ErrorCode.PARAMS_ERROR);
-    Long id = deleteRequest.getId();
-    Picture picture = DatabaseUtils.executeWithExceptionLogging(() -> pictureService.getById(id));
-    ThrowUtils.throwIf(picture == null, ErrorCode.FORBIDDEN_ERROR, "资源不存在，或无权操作");
     User loginUser = userService.getLoginUser(request);
-    ThrowUtils.throwIf(
-        !loginUser.getId().equals(picture.getUserId())
-            && UserRole.ADMIN != UserRole.getEnumByValue(loginUser.getUserRole()),
-        ErrorCode.FORBIDDEN_ERROR,
-        "资源不存在，或无权操作");
-    boolean result = DatabaseUtils.executeWithExceptionLogging(() -> pictureService.removeById(id));
-    ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-    // 清理图片资源
-    pictureService.cleanOldPicture(picture);
+    pictureService.deletePicture(deleteRequest.getId(), loginUser);
     return ResultUtils.success(null);
   }
 
   // todo 分类、标签完善
   @GetMapping("/category_tag")
+  @AuthCheck
   public Response<PictureCategoryTagVO> listPictureCategoryTag() {
     PictureCategoryTagVO pictureCategoryTagVO = new PictureCategoryTagVO();
     List<String> categoryList = Arrays.asList("背景", "资源", "头像");
