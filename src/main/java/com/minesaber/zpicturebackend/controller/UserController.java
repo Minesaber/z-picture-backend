@@ -13,6 +13,7 @@ import com.minesaber.zpicturebackend.utils.ResultUtils;
 import com.minesaber.zpicturebackend.config.SystemConfig;
 import com.minesaber.zpicturebackend.constants.UserConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
+import com.minesaber.zpicturebackend.utils.SystemStatusUtil;
 import com.minesaber.zpicturebackend.utils.ThrowUtils;
 import com.minesaber.zpicturebackend.model.dto.user.*;
 import com.minesaber.zpicturebackend.service.UserService;
@@ -39,9 +40,10 @@ public class UserController {
    */
   // todo 补充同登录接口的检查规则
   @PostMapping("/register")
-  //  @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+  @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
   public Response<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
     // 1、检查参数
+    ThrowUtils.throwIf(SystemStatusUtil.isClosed, ErrorCode.FORBIDDEN_ERROR, "系统维护中，请稍后再试");
     ThrowUtils.throwIf(userRegisterRequest == null, ErrorCode.PARAMS_ERROR);
     // 2、注册
     String userAccount = userRegisterRequest.getUserAccount();
@@ -62,6 +64,7 @@ public class UserController {
   public Response<UserVO> userLogin(
       @RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
     // 1、检查参数
+    ThrowUtils.throwIf(SystemStatusUtil.isClosed, ErrorCode.FORBIDDEN_ERROR, "系统维护中，请稍后再试");
     ThrowUtils.throwIf(userLoginRequest == null, ErrorCode.PARAMS_ERROR);
     // 2、登录
     String userAccount = userLoginRequest.getUserAccount();
@@ -204,14 +207,21 @@ public class UserController {
    * @param deleteRequest 删除请求
    * @return void
    */
+  // todo 不准删除自己
   @PostMapping("/delete")
   @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-  public Response<Void> deleteUserById(@RequestBody DeleteRequest deleteRequest) {
-    // 1、检查参数
+  public Response<Void> deleteUserById(
+      @RequestBody DeleteRequest deleteRequest, HttpServletRequest servletRequest) {
+    // 检查参数
     ThrowUtils.throwIf(deleteRequest == null, ErrorCode.PARAMS_ERROR);
     long id = deleteRequest.getId();
     ThrowUtils.throwIf(ObjUtil.isNull(id) || id <= 0, ErrorCode.PARAMS_ERROR);
-    // 2、删除
+    // 只有超级管理员才可以删除账户
+    ThrowUtils.throwIf(
+        !userService.isSuperAdmin(userService.getLoginUser(servletRequest)),
+        ErrorCode.NO_AUTH_ERROR,
+        "暂只支持超管删除用户账号");
+    // 删除
     DatabaseUtils.executeWithExceptionLogging(() -> userService.removeById(id));
     return ResultUtils.success(null);
   }

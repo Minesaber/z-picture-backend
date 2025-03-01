@@ -2,12 +2,10 @@ package com.minesaber.zpicturebackend.helpers;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.minesaber.zpicturebackend.enums.ErrorCode;
 import com.minesaber.zpicturebackend.model.bo.ClientInfo;
 import com.minesaber.zpicturebackend.model.vo.user.UserVO;
 import com.minesaber.zpicturebackend.utils.RandomStrGenerateUtil;
 import com.minesaber.zpicturebackend.utils.SessionUtil;
-import com.minesaber.zpicturebackend.utils.ThrowUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -152,7 +150,7 @@ public class WxLoginHelper {
     try {
       // 登录成功，更新相应会话的session
       String jSessionId = cIdCodeCache.getIfPresent(cIdCode);
-      ThrowUtils.throwIf(jSessionId == null, ErrorCode.OPERATION_ERROR, "会话已过期");
+      if (jSessionId == null) return false;
       SessionUtil.updateSessionByJSessionId(jSessionId, user);
       sseEmitter.send("success-login");
       return true;

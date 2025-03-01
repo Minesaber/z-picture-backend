@@ -38,6 +38,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
   @Override
   public long userRegister(String userAccount, String userPassword, String checkPassword) {
+    checkRegisterParams(userAccount, userPassword, checkPassword);
+    return register(userAccount, userPassword);
+  }
+
+  private static void checkRegisterParams(
+      String userAccount, String userPassword, String checkPassword) {
     // 1、检查参数
     ThrowUtils.throwIf(
         StrUtil.hasBlank(userAccount, userPassword, checkPassword), ErrorCode.PARAMS_ERROR, "参数为空");
@@ -59,6 +65,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userPassword.length() > UserConstant.USER_PASSWORD_MAX_LENGTH,
         ErrorCode.PARAMS_ERROR,
         "用户密码过长");
+  }
+
+  @Override
+  public long register(String userAccount, String userPassword) {
     // todo 系统输入检查待规范
     // 2、检查账号是否已重复
     // todo 对于已经被删除的账号，不支持重新注册
@@ -107,7 +117,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     QueryWrapper<User> queryWrapper = new QueryWrapper<>();
     queryWrapper.eq("userAccount", userAccount);
     queryWrapper.eq("userPassword", encryptPassword);
-    User oldUser = DatabaseUtils.executeWithExceptionLogging(() -> baseMapper.selectOne(queryWrapper));
+    User oldUser =
+        DatabaseUtils.executeWithExceptionLogging(() -> baseMapper.selectOne(queryWrapper));
     ThrowUtils.throwIf(oldUser == null, ErrorCode.PARAMS_ERROR, "用户账号不存在或密码错误");
     // 4、保存用户的登录状态
     HttpSession session = request.getSession();
@@ -148,6 +159,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
   @Override
   public boolean isAdmin(User user) {
     return user != null && UserRole.ADMIN.getValue().equals(user.getUserRole());
+  }
+
+  @Override
+  public boolean isSuperAdmin(User user) {
+    return user.getId() == 0;
   }
 
   @Override

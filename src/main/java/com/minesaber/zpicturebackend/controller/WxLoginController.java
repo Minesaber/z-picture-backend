@@ -1,9 +1,12 @@
 package com.minesaber.zpicturebackend.controller;
 
+import com.minesaber.zpicturebackend.enums.ErrorCode;
+import com.minesaber.zpicturebackend.utils.SystemStatusUtil;
 import com.minesaber.zpicturebackend.helpers.WxLoginHelper;
 import com.minesaber.zpicturebackend.model.vo.user.CodeRefreshVO;
 import com.minesaber.zpicturebackend.model.vo.base.Response;
 import com.minesaber.zpicturebackend.utils.ResultUtils;
+import com.minesaber.zpicturebackend.utils.ThrowUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +36,7 @@ public class WxLoginController {
       path = "/subscribe",
       produces = {org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE})
   public SseEmitter subscribe(HttpServletRequest servletRequest) {
+    ThrowUtils.throwIf(SystemStatusUtil.isClosed, ErrorCode.FORBIDDEN_ERROR, "系统维护中，请稍后再试");
     return wxLoginHelper.subscribe(servletRequest);
   }
 
@@ -46,6 +50,7 @@ public class WxLoginController {
   @GetMapping("/login/fetch")
   @ResponseBody
   public Response<String> resendCode(HttpServletRequest servletRequest) {
+    ThrowUtils.throwIf(SystemStatusUtil.isClosed, ErrorCode.FORBIDDEN_ERROR, "系统维护中，请稍后再试");
     return ResultUtils.success(wxLoginHelper.resend(servletRequest));
   }
 
@@ -57,6 +62,7 @@ public class WxLoginController {
   @GetMapping("/login/refresh")
   @ResponseBody
   public Response<CodeRefreshVO> refresh(HttpServletRequest servletRequest) {
+    ThrowUtils.throwIf(SystemStatusUtil.isClosed, ErrorCode.FORBIDDEN_ERROR, "系统维护中，请稍后再试");
     CodeRefreshVO codeRefreshVO = new CodeRefreshVO();
     String result = wxLoginHelper.refreshCode(servletRequest);
     if (result.equals("fail-refresh")) {

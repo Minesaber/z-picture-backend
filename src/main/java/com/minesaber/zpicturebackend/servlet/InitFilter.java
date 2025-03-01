@@ -1,9 +1,8 @@
 package com.minesaber.zpicturebackend.servlet;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
-import com.minesaber.zpicturebackend.helpers.ThreadInfoHelper;
+import com.minesaber.zpicturebackend.utils.ThreadInfoUtil;
 import com.minesaber.zpicturebackend.model.bo.ClientInfo;
 import com.minesaber.zpicturebackend.utils.CookieUtil;
 import com.minesaber.zpicturebackend.utils.ThrowUtils;
@@ -33,7 +32,7 @@ public class InitFilter implements Filter {
       filterChain.doFilter(servletRequest, servletResponse);
     } finally {
       // 一个链路请求完毕，清空线程本地变量所关联的值
-      ThreadInfoHelper.clear();
+      ThreadInfoUtil.clear();
     }
   }
 

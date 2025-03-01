@@ -1,5 +1,4 @@
 server:
-  port: 1280
   servlet:
     context-path: /api
     session:

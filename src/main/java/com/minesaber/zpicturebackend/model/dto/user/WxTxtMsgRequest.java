@@ -18,6 +18,10 @@ public class WxTxtMsgRequest extends WxMsgRequest {
   @JacksonXmlProperty(localName = "Event")
   private String event;
 
+  /** 文本消息的内容（MsgType不为text，此字段也可能会出现） */
+  @JacksonXmlProperty(localName = "Content")
+  private String content;
+
   /** 事件的key */
   @JacksonXmlProperty(localName = "EventKey")
   private String eventKey;
@@ -25,10 +29,6 @@ public class WxTxtMsgRequest extends WxMsgRequest {
   /** 二维码的ticket，可用来换取二维码图片 */
   @JacksonXmlProperty(localName = "Ticket")
   private String ticket;
-
-  /** 文本消息的内容（MsgType不为text，此字段也可能会出现） */
-  @JacksonXmlProperty(localName = "Content")
-  private String content;
 
   /** 消息id（标识非事件消息） */
   @JacksonXmlProperty(localName = "MsgId")

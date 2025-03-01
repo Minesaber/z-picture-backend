@@ -21,6 +21,15 @@ public interface UserService extends IService<User> {
   long userRegister(String userAccount, String userPassword, String checkPassword);
 
   /**
+   * 微信用户注册
+   *
+   * @param userAccount 默认使用openId（再次订阅，不插入新记录）
+   * @param userPassword 默认使用openId
+   * @return 新用户id
+   */
+  long register(String userAccount, String userPassword);
+
+  /**
    * 用户登录
    *
    * @param userAccount 用户账号
@@ -52,6 +61,13 @@ public interface UserService extends IService<User> {
    * @return 判断结果
    */
   boolean isAdmin(User user);
+
+  /**
+   * 判断用户是否是超级管理员
+   *
+   * <p>暂时根据用户id是否为0判断
+   */
+  boolean isSuperAdmin(User user);
 
   /**
    * 获取用户视图列表（脱敏）

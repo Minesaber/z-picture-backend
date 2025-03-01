@@ -32,4 +32,15 @@ public class RedisStringTest {
     storedValue = valueOps.get(key);
     assertNull(storedValue, "删除后的值不为空");
   }
+
+  @Test
+  public void uuid() {
+    System.out.println(java.util.UUID.randomUUID().toString().replace("-", ""));
+  }
+
+  @Test
+  public void testToLowerCase() {
+    String str = "Hello World 2025";
+    System.out.println(str.toLowerCase());
+  }
 }

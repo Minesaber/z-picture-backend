@@ -8,13 +8,13 @@ import lombok.Data;
 @Data
 @JacksonXmlRootElement(localName = "xml")
 public class WxMsgRequest {
-  /** 消息接收方，一般是公众账号的原始 id */
-  @JacksonXmlProperty(localName = "ToUserName")
-  private String toUserName;
-
   /** 消息发送方，对应发送消息的用户的 openId */
   @JacksonXmlProperty(localName = "FromUserName")
   private String fromUserName;
+
+  /** 消息接收方，一般是公众账号的原始 id */
+  @JacksonXmlProperty(localName = "ToUserName")
+  private String toUserName;
 
   /** 消息创建的时间戳（通常是秒级时间戳） */
   @JacksonXmlProperty(localName = "CreateTime")

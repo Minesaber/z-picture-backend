@@ -4,7 +4,7 @@ import com.minesaber.zpicturebackend.aop.annotation.AuthCheck;
 import com.minesaber.zpicturebackend.constants.UserConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 import com.minesaber.zpicturebackend.model.entity.user.User;
-import com.minesaber.zpicturebackend.helpers.ThreadInfoHelper;
+import com.minesaber.zpicturebackend.utils.ThreadInfoUtil;
 import com.minesaber.zpicturebackend.utils.ThrowUtils;
 import com.minesaber.zpicturebackend.enums.UserRole;
 import com.minesaber.zpicturebackend.service.UserService;
@@ -31,7 +31,8 @@ public class AuthInterceptor {
   @Around("@annotation(authCheck)")
   public Object doIntercept(ProceedingJoinPoint joinPoint, AuthCheck authCheck) throws Throwable {
     // 1、检查是否已登录
-    User currentUser = (User) ThreadInfoHelper.getAttribute(UserConstant.LOGIN_USER_STATE);
+    // todo 用户信息更新后，无法及时反馈
+    User currentUser = (User) ThreadInfoUtil.getAttribute(UserConstant.LOGIN_USER_STATE);
     ThrowUtils.throwIf(
         currentUser == null || currentUser.getId() == null, ErrorCode.NOT_LOGIN_ERROR);
     // 2、检查注解
