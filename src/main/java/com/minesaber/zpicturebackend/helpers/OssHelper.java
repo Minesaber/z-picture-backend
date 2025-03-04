@@ -12,11 +12,10 @@ import com.aliyun.oss.common.utils.IOUtils;
 import com.aliyun.oss.model.*;
 import com.minesaber.zpicturebackend.config.OssClientConfig;
 import com.minesaber.zpicturebackend.constants.FileConstant;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Resource;
+import com.minesaber.zpicturebackend.enums.ErrorCode;
+import com.minesaber.zpicturebackend.exception.BusinessException;
+import com.minesaber.zpicturebackend.utils.SystemStatusUtil;
+import com.minesaber.zpicturebackend.utils.ThrowUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +24,10 @@ import java.util.Formatter;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import javax.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 
 /** OSS 工具 */
 @Component
@@ -47,6 +50,15 @@ public class OssHelper {
    */
   public String getBaseURL() {
     return "https://" + ossClientConfig.getBucket() + "." + ossClientConfig.getEndpoint();
+  }
+
+  /**
+   * 获取临时存储桶 URL
+   *
+   * @return 外网访问基础 URL
+   */
+  public String getTempURL() {
+    return "https://" + ossClientConfig.getBucketTemp() + "." + ossClientConfig.getEndpoint();
   }
 
   /**
@@ -79,6 +91,19 @@ public class OssHelper {
   }
 
   /**
+   * 上传到临时存储桶
+   *
+   * @param key 唯一键
+   * @param inputStream 文件流
+   * @return 上传结果
+   */
+  public PutObjectResult putObjectToTempBucket(String key, InputStream inputStream) {
+    PutObjectRequest putObjectRequest =
+        new PutObjectRequest(ossClientConfig.getBucketTemp(), key, inputStream);
+    return executeWithExceptionLogging(() -> ossClient.putObject(putObjectRequest));
+  }
+
+  /**
    * 下载文件
    *
    * @param key 唯一键
@@ -91,16 +116,20 @@ public class OssHelper {
     return executeWithExceptionLogging(() -> ossClient.getObject(getObjectRequest));
   }
 
-  // tips：已使用本地库获取图片信息
-  //  /**
-  //   * 获取图片信息
-  //   *
-  //   * @param key 唯一键
-  //   * @return 图片信息
-  //   */
-  //  public OSSObject getPictureInfo(String key) {
-  //    return getObject(key, request -> request.setProcess("image/info"));
-  //  }
+  /**
+   * 获取图片信息
+   *
+   * @param key 唯一键
+   * @return 图片信息
+   */
+  public OSSObject getPictureInfo(String key) {
+    try {
+      return getObject(key, request -> request.setProcess("image/info"));
+    } catch (Exception e) {
+      deleteObject(key);
+      throw new BusinessException(ErrorCode.OPERATION_ERROR, "图片解析错误");
+    }
+  }
 
   /**
    * 生成转换后的图片
@@ -178,7 +207,16 @@ public class OssHelper {
    * @param key 待删除图片唯一键
    */
   public void deleteObject(String key) {
-    ossClient.deleteObject(ossClientConfig.getBucket(), key);
+    executeWithExceptionLogging(() -> ossClient.deleteObject(ossClientConfig.getBucket(), key));
+  }
+
+  /**
+   * 删除临时存储桶中指定文件
+   *
+   * @param key 待删除文件唯一键
+   */
+  public void deleteObjectFromTempBucket(String key) {
+    executeWithExceptionLogging(() -> ossClient.deleteObject(ossClientConfig.getBucketTemp(), key));
   }
 
   /**
@@ -199,6 +237,7 @@ public class OssHelper {
    * @return 预签名URL
    */
   public String genPresignedUrl(String key, Long expiration) {
+    ThrowUtils.throwIf(SystemStatusUtil.isClosed(), ErrorCode.MAINTENANCE_ERROR);
     expiration = Math.min(expiration, 3600 * 1000L);
     // 首先读缓存
     String cachedPreSignedUrl = redisTemplate.opsForValue().get(key);
@@ -235,7 +274,7 @@ public class OssHelper {
     } catch (OSSException | ClientException e) {
       // OSSException 和 com.aliyun.oss.ClientException 为运行时异常
       log.error("Error Message: {}", e.getMessage());
-      throw new RuntimeException(e);
+      throw new BusinessException(ErrorCode.OPERATION_ERROR, "OSS 操作失败");
     }
   }
 }

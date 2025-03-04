@@ -1,7 +1,7 @@
 package com.minesaber.zpicturebackend.utils;
 
-import com.minesaber.zpicturebackend.exception.BusinessException;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
+import com.minesaber.zpicturebackend.exception.BusinessException;
 
 /** 异常处理工具 */
 public class ThrowUtils {

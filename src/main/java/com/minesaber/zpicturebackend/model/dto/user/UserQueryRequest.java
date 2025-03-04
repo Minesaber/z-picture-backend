@@ -1,10 +1,9 @@
 package com.minesaber.zpicturebackend.model.dto.user;
 
 import com.minesaber.zpicturebackend.model.dto.base.PageRequest;
+import java.io.Serializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.io.Serializable;
 
 /** 用户查询请求 */
 @EqualsAndHashCode(callSuper = true)

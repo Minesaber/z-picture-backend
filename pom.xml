@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.minesaber</groupId>
     <artifactId>z-picture-backend</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>v1</version>
     <name>z-picture-backend</name>
     <description>z-picture-backend</description>
     <properties>
@@ -157,7 +157,7 @@
                 <version>${spring-boot.version}</version>
                 <configuration>
                     <mainClass>com.minesaber.zpicturebackend.ZPictureBackendApplication</mainClass>
-                    <skip>true</skip>
+                    <!--<skip>true</skip>-->
                 </configuration>
                 <executions>
                     <execution>

@@ -5,11 +5,10 @@ import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import java.util.List;
-
 import com.minesaber.zpicturebackend.api.imagesearch.baidu.model.ImageSearchResult;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 import com.minesaber.zpicturebackend.exception.BusinessException;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 /** 获取图片列表（step 3） */

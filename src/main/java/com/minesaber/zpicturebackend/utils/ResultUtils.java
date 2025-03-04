@@ -1,7 +1,7 @@
 package com.minesaber.zpicturebackend.utils;
 
-import com.minesaber.zpicturebackend.model.vo.base.Response;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
+import com.minesaber.zpicturebackend.model.vo.base.Response;
 
 /** 响应结果工具 */
 public class ResultUtils {

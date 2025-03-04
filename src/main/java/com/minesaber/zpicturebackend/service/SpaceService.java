@@ -3,12 +3,10 @@ package com.minesaber.zpicturebackend.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.minesaber.zpicturebackend.model.dto.space.SpaceAddRequest;
-import com.minesaber.zpicturebackend.model.dto.space.SpaceEditRequest;
 import com.minesaber.zpicturebackend.model.dto.space.SpaceQueryRequest;
 import com.minesaber.zpicturebackend.model.entity.space.Space;
 import com.minesaber.zpicturebackend.model.entity.user.User;
 import com.minesaber.zpicturebackend.model.vo.space.SpaceVO;
-
 import java.util.List;
 
 public interface SpaceService extends IService<Space> {

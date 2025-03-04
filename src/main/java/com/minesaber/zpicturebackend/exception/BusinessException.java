@@ -40,4 +40,14 @@ public class BusinessException extends RuntimeException {
     super(message);
     this.code = errorCode.getCode();
   }
+
+  /**
+   * 禁用堆栈追踪
+   *
+   * @return this
+   */
+  @Override
+  public Throwable fillInStackTrace() {
+    return this;
+  }
 }

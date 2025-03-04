@@ -1,8 +1,7 @@
 package com.minesaber.zpicturebackend.model.dto.base;
 
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 @Data
 public class DeleteRequest implements Serializable {

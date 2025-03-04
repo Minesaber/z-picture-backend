@@ -1,11 +1,9 @@
 package com.minesaber.zpicturebackend.model.dto.picture;
 
 import com.minesaber.zpicturebackend.model.dto.base.PageRequest;
-
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

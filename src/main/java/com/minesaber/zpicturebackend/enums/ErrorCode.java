@@ -21,7 +21,8 @@ public enum ErrorCode {
   NOT_FOUND_ERROR(40400, "资源不存在"),
   // 内部异常，50000为底层异常，50001为上层异常
   SYSTEM_ERROR(50000, "系统异常"),
-  OPERATION_ERROR(50001, "操作失败");
+  OPERATION_ERROR(50001, "操作失败"),
+  MAINTENANCE_ERROR(50300, "系统维护中，请稍后再试或联系管理员");
 
   /** 状态码 */
   private final int code;

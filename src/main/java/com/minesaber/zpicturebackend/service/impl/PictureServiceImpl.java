@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.aliyun.oss.model.OSSObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.minesaber.zpicturebackend.api.ai.aliyun.helpers.PictureAIHelper;
@@ -31,7 +32,13 @@ import com.minesaber.zpicturebackend.service.SpaceService;
 import com.minesaber.zpicturebackend.service.UserService;
 import com.minesaber.zpicturebackend.utils.ColorSimilarUtils;
 import com.minesaber.zpicturebackend.utils.DatabaseUtils;
+import com.minesaber.zpicturebackend.utils.RandomStrGenerateUtil;
 import com.minesaber.zpicturebackend.utils.ThrowUtils;
+import java.io.*;
+import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -41,12 +48,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import javax.annotation.Resource;
-import java.io.IOException;
-import java.util.*;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -578,16 +579,37 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     checkPictureAuth(picture, loginUser);
     // 检查图片是否符合要求
     if (picture.getPicWidth() < 512 || picture.getPicHeight() < 512) {
-      throw new BusinessException(ErrorCode.PARAMS_ERROR, "创建任务失败，图片宽度或高度低于512像素");
+      throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片宽度或高度小于512像素");
+    }
+    if (picture.getPicWidth() > 4096 || picture.getPicHeight() > 4096) {
+      throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片宽度或高度大于4096像素");
     }
     // 创建扩图任务
     CreateOutPaintingTaskRequest createOutPaintingTaskRequest = new CreateOutPaintingTaskRequest();
     CreateOutPaintingTaskRequest.Input input = new CreateOutPaintingTaskRequest.Input();
-    input.setImageUrl(picture.getUrl());
-    createOutPaintingTaskRequest.setInput(input);
-    createOutPaintingTaskRequest.setParameters(pictureOutPaintingRequest.getParameters());
-    // 创建任务
-    return pictureAIHelper.createOutPaintingTask(createOutPaintingTaskRequest);
+    String tempKey = "ZPicture/AI/OutPaintingTask" + RandomStrGenerateUtil.generateUUID(null);
+    // 获取输入流
+    OSSObject ossObject = ossHelper.getObject(ossHelper.getKeyFromUrl(picture.getUrl()), null);
+    try (InputStream inputStream = ossObject.getObjectContent()) {
+      byte[] bytes = inputStream.readAllBytes();
+      ossHelper.putObjectToTempBucket(tempKey, new ByteArrayInputStream(bytes));
+      input.setImageUrl(ossHelper.getTempURL() + "/" + tempKey);
+      createOutPaintingTaskRequest.setInput(input);
+      createOutPaintingTaskRequest.setParameters(pictureOutPaintingRequest.getParameters());
+      return pictureAIHelper.createOutPaintingTask(createOutPaintingTaskRequest);
+    } catch (IOException e) {
+      throw new BusinessException(ErrorCode.OPERATION_ERROR, "创建任务失败");
+    } finally {
+      new Thread(
+          () -> {
+            try {
+              Thread.sleep(3 * 60 * 1000);
+            } catch (InterruptedException e) {
+              throw new RuntimeException(e);
+            }
+            ossHelper.deleteObjectFromTempBucket(tempKey);
+          });
+    }
   }
 
   // todo @Async默认使用SimpleAsyncTaskExecutor

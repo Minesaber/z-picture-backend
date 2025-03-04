@@ -10,7 +10,7 @@ spring:
   application:
     name: z-picture-backend
   profiles:
-    active: local
+    active: dev
   # 最大文件上传体积
   servlet:
     multipart:

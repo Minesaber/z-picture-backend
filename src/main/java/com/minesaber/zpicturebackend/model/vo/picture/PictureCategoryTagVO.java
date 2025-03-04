@@ -1,9 +1,8 @@
 package com.minesaber.zpicturebackend.model.vo.picture;
 
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.List;
+import lombok.Data;
 
 /** 图片分类和标签视图 */
 @Data

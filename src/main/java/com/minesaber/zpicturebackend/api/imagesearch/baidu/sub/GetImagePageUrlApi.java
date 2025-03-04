@@ -6,12 +6,11 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpStatus;
 import cn.hutool.json.JSONUtil;
+import com.minesaber.zpicturebackend.enums.ErrorCode;
+import com.minesaber.zpicturebackend.exception.BusinessException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.minesaber.zpicturebackend.enums.ErrorCode;
-import com.minesaber.zpicturebackend.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 
 /** 获取以图搜图页面地址（step 1） */

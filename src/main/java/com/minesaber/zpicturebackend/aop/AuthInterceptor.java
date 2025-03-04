@@ -1,19 +1,20 @@
 package com.minesaber.zpicturebackend.aop;
 
 import com.minesaber.zpicturebackend.aop.annotation.AuthCheck;
-import com.minesaber.zpicturebackend.constants.UserConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
-import com.minesaber.zpicturebackend.model.entity.user.User;
-import com.minesaber.zpicturebackend.utils.ThreadInfoUtil;
-import com.minesaber.zpicturebackend.utils.ThrowUtils;
 import com.minesaber.zpicturebackend.enums.UserRole;
+import com.minesaber.zpicturebackend.model.entity.user.User;
 import com.minesaber.zpicturebackend.service.UserService;
+import com.minesaber.zpicturebackend.utils.ThrowUtils;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Resource;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Aspect
 @Component
@@ -32,7 +33,9 @@ public class AuthInterceptor {
   public Object doIntercept(ProceedingJoinPoint joinPoint, AuthCheck authCheck) throws Throwable {
     // 1、检查是否已登录
     // todo 用户信息更新后，无法及时反馈
-    User currentUser = (User) ThreadInfoUtil.getAttribute(UserConstant.LOGIN_USER_STATE);
+    RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
+    HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+    User currentUser = userService.getLoginUser(request);
     ThrowUtils.throwIf(
         currentUser == null || currentUser.getId() == null, ErrorCode.NOT_LOGIN_ERROR);
     // 2、检查注解

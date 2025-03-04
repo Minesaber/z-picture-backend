@@ -1,15 +1,15 @@
-package com.minesaber.zpicturebackend.model.dto.user;
+package com.minesaber.zpicturebackend.model.vo.user;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-/** 文本消息 */
+/** 文本响应 */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @JacksonXmlRootElement(localName = "xml")
-public class WxTxtMsgRequest extends WxMsgRequest {
+public class WxTxtMsgVO extends WxMsgVO {
   /**
    * 描述具体的事件类型（MsgType为event时，此字段才会出现）
    *

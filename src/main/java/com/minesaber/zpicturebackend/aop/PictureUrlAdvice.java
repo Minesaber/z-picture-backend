@@ -1,11 +1,12 @@
 package com.minesaber.zpicturebackend.aop;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.minesaber.zpicturebackend.helpers.OssHelper;
 import com.minesaber.zpicturebackend.model.entity.picture.Picture;
 import com.minesaber.zpicturebackend.model.vo.base.Response;
 import com.minesaber.zpicturebackend.model.vo.picture.PictureVO;
-import com.minesaber.zpicturebackend.api.ai.aliyun.model.OutPaintingTaskResult;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import java.util.List;
+import javax.annotation.Resource;
 import lombok.NonNull;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -14,9 +15,6 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
-
-import javax.annotation.Resource;
-import java.util.List;
 
 /** 对返回的图片地址进行处理，便于公有读/私有读的快速切换 */
 @ControllerAdvice
@@ -86,8 +84,6 @@ public class PictureUrlAdvice implements ResponseBodyAdvice<Object> {
       processPicture((Picture) data);
     } else if (data instanceof PictureVO) {
       processPictureVO((PictureVO) data);
-    } else if (data instanceof OutPaintingTaskResult) {
-      processOutPaintingTaskResult((OutPaintingTaskResult) data);
     } else if (data instanceof Page) {
       Page<?> page = (Page<?>) data;
       page.getRecords().forEach(this::processData);
@@ -129,22 +125,6 @@ public class PictureUrlAdvice implements ResponseBodyAdvice<Object> {
       pictureVO.setThumbnailUrl(
           ossHelper.genPresignedUrl(
               ossHelper.getKeyFromUrl(pictureVO.getThumbnailUrl()), DEFAULT_EXPIRATION));
-    }
-  }
-
-  /**
-   * 针对扩图任务结果中输出图片URL的处理
-   *
-   * @param taskResult 扩图任务结果
-   */
-  private void processOutPaintingTaskResult(OutPaintingTaskResult taskResult) {
-    if (taskResult.getOutput() != null && taskResult.getOutput().getOutputImageUrl() != null) {
-      taskResult
-          .getOutput()
-          .setOutputImageUrl(
-              ossHelper.genPresignedUrl(
-                  ossHelper.getKeyFromUrl(taskResult.getOutput().getOutputImageUrl()),
-                  DEFAULT_EXPIRATION));
     }
   }
 }

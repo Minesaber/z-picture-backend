@@ -7,7 +7,6 @@ import com.minesaber.zpicturebackend.model.dto.picture.*;
 import com.minesaber.zpicturebackend.model.entity.picture.Picture;
 import com.minesaber.zpicturebackend.model.entity.user.User;
 import com.minesaber.zpicturebackend.model.vo.picture.PictureVO;
-
 import java.util.List;
 
 public interface PictureService extends IService<Picture> {

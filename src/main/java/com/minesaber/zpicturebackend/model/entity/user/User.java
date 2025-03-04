@@ -1,13 +1,12 @@
 package com.minesaber.zpicturebackend.model.entity.user;
 
 import com.baomidou.mybatisplus.annotation.*;
-import lombok.Data;
-
+import java.io.Serializable;
+import java.util.Date;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
-import java.util.Date;
+import lombok.Data;
 
 /** 用户 */
 @TableName(value = "user")

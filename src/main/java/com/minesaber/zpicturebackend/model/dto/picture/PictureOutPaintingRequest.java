@@ -1,8 +1,7 @@
 package com.minesaber.zpicturebackend.model.dto.picture;
 
-import java.io.Serializable;
-
 import com.minesaber.zpicturebackend.api.ai.aliyun.model.CreateOutPaintingTaskRequest;
+import java.io.Serializable;
 import lombok.Data;
 
 /** 扩图请求 */

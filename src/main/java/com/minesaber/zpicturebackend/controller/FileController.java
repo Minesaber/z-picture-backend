@@ -3,21 +3,19 @@ package com.minesaber.zpicturebackend.controller;
 import com.aliyun.core.utils.IOUtils;
 import com.aliyun.oss.model.OSSObject;
 import com.minesaber.zpicturebackend.aop.annotation.AuthCheck;
-import com.minesaber.zpicturebackend.constants.FileConstant;
+import com.minesaber.zpicturebackend.constants.UserConstant;
+import com.minesaber.zpicturebackend.helpers.OssHelper;
 import com.minesaber.zpicturebackend.helpers.upload.PictureUploadHelper;
 import com.minesaber.zpicturebackend.model.vo.base.Response;
 import com.minesaber.zpicturebackend.utils.ResultUtils;
-import com.minesaber.zpicturebackend.constants.UserConstant;
-import com.minesaber.zpicturebackend.helpers.OssHelper;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/file")
@@ -43,7 +41,7 @@ public class FileController {
     String key = String.format("test/%s", name);
     File file;
     try {
-      // 不指定suffix，默认为tmp。但因为后续使用key来确定OSS文件名，所以不影响使用
+      // 不指定suffix，默认为tmp，但因为后续使用key来确定OSS文件名，所以不影响使用
       file = File.createTempFile(key, null);
       multipartFile.transferTo(file);
     } catch (IOException ioe) {

@@ -2,17 +2,19 @@ package com.minesaber.zpicturebackend.helpers;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.minesaber.zpicturebackend.enums.ErrorCode;
+import com.minesaber.zpicturebackend.exception.BusinessException;
 import com.minesaber.zpicturebackend.model.bo.ClientInfo;
-import com.minesaber.zpicturebackend.model.vo.user.UserVO;
+import com.minesaber.zpicturebackend.model.entity.user.User;
 import com.minesaber.zpicturebackend.utils.RandomStrGenerateUtil;
-import com.minesaber.zpicturebackend.utils.SessionUtil;
+import com.minesaber.zpicturebackend.utils.ThrowUtils;
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 /** 微信登录工具 */
 @Slf4j
@@ -20,11 +22,21 @@ import java.util.concurrent.TimeUnit;
 public class WxLoginHelper {
   // todo 删除魔数
   /** 默认sse连接超时时间为 5分钟 */
-  private static final Long SSE_EXPIRE = 5 * 60 * 1000L;
+  private static final Long SSE_EXPIRE = 25 * 60 * 1000L;
+
+  /** 等待登录的用户 */
+  private final LoadingCache<String, User> waitingLoginCache =
+      Caffeine.newBuilder()
+          .maximumSize(100)
+          .expireAfterWrite(15, TimeUnit.MINUTES)
+          .build(s -> null);
 
   /** 标识码 与 sse连接 的映射 */
   private final LoadingCache<String, SseEmitter> sseCache =
-      Caffeine.newBuilder().maximumSize(100).expireAfterWrite(3, TimeUnit.MINUTES).build(s -> null);
+      Caffeine.newBuilder()
+          .maximumSize(100)
+          .expireAfterWrite(15, TimeUnit.MINUTES)
+          .build(s -> null);
 
   /**
    * 缓存 JSESSIONID 与 cIdCode 的映射
@@ -34,7 +46,7 @@ public class WxLoginHelper {
   private final LoadingCache<String, String> cIdCodeCache =
       Caffeine.newBuilder()
           .maximumSize(100)
-          .expireAfterWrite(3, TimeUnit.MINUTES)
+          .expireAfterWrite(15, TimeUnit.MINUTES)
           .build(
               jSessionId -> {
                 while (true) {
@@ -141,21 +153,39 @@ public class WxLoginHelper {
   /**
    * 登录
    *
+   * @param jSessionId JSESSIONID
+   * @return 用户视图
+   */
+  public User login(String jSessionId) {
+    User user = waitingLoginCache.getIfPresent(jSessionId);
+    if (user != null) {
+      waitingLoginCache.invalidate(jSessionId);
+    }
+    return user;
+  }
+
+  /**
+   * 登录
+   *
    * @param cIdCode 客户端标识码
    * @return 登录结果
    */
-  public boolean login(String cIdCode, UserVO user) {
+  public boolean wxLogin(String cIdCode, User user) throws IOException {
     SseEmitter sseEmitter = sseCache.getIfPresent(cIdCode);
     if (sseEmitter == null) return false;
     try {
+      // 遍历查找 cIdCode 对应的 jSessionId
+      String jSessionId =
+          cIdCodeCache.asMap().entrySet().stream()
+              .filter(entry -> cIdCode.equals(entry.getValue()))
+              .map(Map.Entry::getKey)
+              .findFirst()
+              .orElse(null);
+      ThrowUtils.throwIf(jSessionId == null, ErrorCode.PARAMS_ERROR, "JSESSIONID 异常");
       // 登录成功，更新相应会话的session
-      String jSessionId = cIdCodeCache.getIfPresent(cIdCode);
-      if (jSessionId == null) return false;
-      SessionUtil.updateSessionByJSessionId(jSessionId, user);
+      waitingLoginCache.put(jSessionId, user);
       sseEmitter.send("success-login");
       return true;
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     } finally {
       sseEmitter.complete();
       sseCache.invalidate(cIdCode);

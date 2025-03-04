@@ -1,21 +1,22 @@
 package com.minesaber.zpicturebackend.controller;
 
+import com.minesaber.zpicturebackend.constants.UserConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
-import com.minesaber.zpicturebackend.utils.SystemStatusUtil;
 import com.minesaber.zpicturebackend.helpers.WxLoginHelper;
-import com.minesaber.zpicturebackend.model.vo.user.CodeRefreshVO;
+import com.minesaber.zpicturebackend.model.entity.user.User;
 import com.minesaber.zpicturebackend.model.vo.base.Response;
+import com.minesaber.zpicturebackend.model.vo.user.CodeRefreshVO;
 import com.minesaber.zpicturebackend.utils.ResultUtils;
+import com.minesaber.zpicturebackend.utils.SystemStatusUtil;
 import com.minesaber.zpicturebackend.utils.ThrowUtils;
+import java.util.Base64;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 
 @Slf4j
 @RestController
@@ -31,12 +32,10 @@ public class WxLoginController {
    *
    * @return sse连接
    */
-  @ResponseBody
   @GetMapping(
       path = "/subscribe",
       produces = {org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE})
   public SseEmitter subscribe(HttpServletRequest servletRequest) {
-    ThrowUtils.throwIf(SystemStatusUtil.isClosed, ErrorCode.FORBIDDEN_ERROR, "系统维护中，请稍后再试");
     return wxLoginHelper.subscribe(servletRequest);
   }
 
@@ -48,9 +47,8 @@ public class WxLoginController {
    * @return 标识码
    */
   @GetMapping("/login/fetch")
-  @ResponseBody
   public Response<String> resendCode(HttpServletRequest servletRequest) {
-    ThrowUtils.throwIf(SystemStatusUtil.isClosed, ErrorCode.FORBIDDEN_ERROR, "系统维护中，请稍后再试");
+    ThrowUtils.throwIf(SystemStatusUtil.isClosed(), ErrorCode.MAINTENANCE_ERROR);
     return ResultUtils.success(wxLoginHelper.resend(servletRequest));
   }
 
@@ -60,9 +58,8 @@ public class WxLoginController {
    * @return 登录视图
    */
   @GetMapping("/login/refresh")
-  @ResponseBody
   public Response<CodeRefreshVO> refresh(HttpServletRequest servletRequest) {
-    ThrowUtils.throwIf(SystemStatusUtil.isClosed, ErrorCode.FORBIDDEN_ERROR, "系统维护中，请稍后再试");
+    ThrowUtils.throwIf(SystemStatusUtil.isClosed(), ErrorCode.MAINTENANCE_ERROR);
     CodeRefreshVO codeRefreshVO = new CodeRefreshVO();
     String result = wxLoginHelper.refreshCode(servletRequest);
     if (result.equals("fail-refresh")) {
@@ -71,5 +68,16 @@ public class WxLoginController {
       codeRefreshVO.setCIdCode(result);
     }
     return ResultUtils.success(codeRefreshVO);
+  }
+
+  @GetMapping("/login")
+  public Response<Boolean> login(HttpServletRequest servletRequest) {
+    ThrowUtils.throwIf(SystemStatusUtil.isClosed(), ErrorCode.MAINTENANCE_ERROR);
+    String jSessionId = servletRequest.getSession().getId();
+    jSessionId = Base64.getEncoder().encodeToString(jSessionId.getBytes());
+    User user = wxLoginHelper.login(jSessionId);
+    ThrowUtils.throwIf(user == null, ErrorCode.NOT_LOGIN_ERROR, "会话无效或已过期，请尝试刷新页面重新登录");
+    servletRequest.getSession().setAttribute(UserConstant.LOGIN_USER_STATE, user);
+    return ResultUtils.success(true);
   }
 }

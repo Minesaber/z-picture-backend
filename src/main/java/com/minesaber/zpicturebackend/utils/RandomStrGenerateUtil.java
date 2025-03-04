@@ -2,7 +2,6 @@ package com.minesaber.zpicturebackend.utils;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.RandomUtil;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -53,6 +52,7 @@ public class RandomStrGenerateUtil {
   /**
    * 生成uuid
    *
+   * @param length 限制长度，如果为null表示使用原始uuid
    * @return uuid
    */
   public static String generateUUID(Integer length) {

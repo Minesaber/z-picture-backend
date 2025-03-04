@@ -7,14 +7,13 @@ import com.minesaber.zpicturebackend.constants.FileConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 import com.minesaber.zpicturebackend.exception.BusinessException;
 import com.minesaber.zpicturebackend.utils.ThrowUtils;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 /** URL文件上传工具 */
 @Component
@@ -38,13 +37,17 @@ public class UrlUploadHelper extends FileUploadTemplate {
         "仅支持 HTTP 或 HTTPS 协议的文件地址");
     // 发送 HEAD 尝试检查图片是否存在
     try (HttpResponse httpResponse = HttpUtil.createRequest(Method.HEAD, fileUrl).execute()) {
-      if (httpResponse.getStatus() != HttpStatus.HTTP_OK) {
+      if (!httpResponse.isOk()) {
+        ThrowUtils.throwIf(
+            httpResponse.getStatus() == 302, ErrorCode.PARAMS_ERROR, "请确保使用的是纯图片地址而非页面地址，并保证格式正确");
         return;
       }
       // 校验文件格式
       String contentType = httpResponse.header("Content-Type");
-      String type = StrUtil.subAfter(contentType, '/', true);
-      pictureType.set(type);
+      if (StrUtil.isNotBlank(contentType) && contentType.startsWith("image/")) {
+        String type = StrUtil.subAfter(contentType, '/', true);
+        pictureType.set(type);
+      }
       List<String> mimeTypes =
           FileConstant.ALLOW_FORMAT_LIST.stream()
               .map(allowType -> "image/" + allowType)
@@ -73,9 +76,11 @@ public class UrlUploadHelper extends FileUploadTemplate {
   @Override
   protected String getOriginalFilename(Object inputSource) {
     String fileUrl = (String) inputSource;
-    return StrUtil.subBefore(StrUtil.subBefore(fileUrl, "?", false), '.', true)
-        + "."
-        + pictureType.get();
+    String type =
+        pictureType.get() != null
+            ? pictureType.get()
+            : StrUtil.subAfter(StrUtil.subBefore(fileUrl, "?", false), '.', true);
+    return StrUtil.subBefore(StrUtil.subBefore(fileUrl, "?", false), '.', true) + "." + type;
   }
 
   @Override

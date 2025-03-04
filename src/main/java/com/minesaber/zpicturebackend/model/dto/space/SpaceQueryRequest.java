@@ -1,8 +1,7 @@
 package com.minesaber.zpicturebackend.model.dto.space;
 
-import java.io.Serializable;
-
 import com.minesaber.zpicturebackend.model.dto.base.PageRequest;
+import java.io.Serializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

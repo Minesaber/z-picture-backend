@@ -1,8 +1,7 @@
 package com.minesaber.zpicturebackend.model.dto.picture;
 
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 /** 图片上传请求 */
 @Data

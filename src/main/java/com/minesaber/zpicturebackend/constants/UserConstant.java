@@ -25,4 +25,11 @@ public interface UserConstant {
 
   /** 管理员角色 Key */
   String ADMIN_ROLE = "admin";
+
+  /** 默认头像地址列表 */
+  String[] DEFAULT_AVATAR_URL_LIST = {
+    "https://s3.uuu.ovh/imgs/2023/06/11/1a2d95dc8b4c178a.png",
+    "https://s3.uuu.ovh/imgs/2023/06/11/9cddbe28dc3eee6c.png",
+    "https://s3.uuu.ovh/imgs/2023/06/11/ae697d77da6b576f.png"
+  };
 }

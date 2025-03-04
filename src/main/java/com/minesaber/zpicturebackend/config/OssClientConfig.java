@@ -24,6 +24,9 @@ public class OssClientConfig {
   /** 桶 */
   private String bucket;
 
+  /** 临时存储桶 */
+  private String bucketTemp;
+
   // todo 当前ossClient为单例，可以考虑池化
   @Bean
   public OSS ossClient() {

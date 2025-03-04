@@ -1,9 +1,8 @@
 package com.minesaber.zpicturebackend.model.vo.base;
 
 import com.minesaber.zpicturebackend.enums.ErrorCode;
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 全局响应封装类

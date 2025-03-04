@@ -2,10 +2,9 @@ package com.minesaber.zpicturebackend.model.vo.user;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.minesaber.zpicturebackend.model.entity.user.User;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 /** 用户视图（脱敏） */
 @Data
@@ -50,5 +49,20 @@ public class UserVO implements Serializable {
     UserVO userVO = new UserVO();
     BeanUtil.copyProperties(user, userVO);
     return userVO;
+  }
+
+  @Override
+  public String toString() {
+    return "UserVO{" +
+            "id=" + id +
+            ", createTime=" + createTime +
+            ", editTime=" + editTime +
+            ", updateTime=" + updateTime +
+            ", userAccount='" + userAccount + '\'' +
+            ", userRole='" + userRole + '\'' +
+            ", userName='" + userName + '\'' +
+            ", userAvatar='" + userAvatar + '\'' +
+            ", userProfile='" + userProfile + '\'' +
+            '}';
   }
 }

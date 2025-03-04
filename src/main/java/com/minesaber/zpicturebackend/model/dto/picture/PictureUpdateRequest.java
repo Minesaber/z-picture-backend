@@ -2,7 +2,6 @@ package com.minesaber.zpicturebackend.model.dto.picture;
 
 import java.io.Serializable;
 import java.util.List;
-
 import lombok.Data;
 
 /** 图片更新请求 */

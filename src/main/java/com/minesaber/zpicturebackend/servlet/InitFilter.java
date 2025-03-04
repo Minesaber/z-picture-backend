@@ -2,18 +2,16 @@ package com.minesaber.zpicturebackend.servlet;
 
 import cn.hutool.core.util.StrUtil;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
-import com.minesaber.zpicturebackend.utils.ThreadInfoUtil;
 import com.minesaber.zpicturebackend.model.bo.ClientInfo;
 import com.minesaber.zpicturebackend.utils.CookieUtil;
 import com.minesaber.zpicturebackend.utils.ThrowUtils;
-import lombok.extern.slf4j.Slf4j;
-
+import java.io.IOException;
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @WebFilter(urlPatterns = "/*", filterName = "initFilter", asyncSupported = true)
@@ -32,7 +30,6 @@ public class InitFilter implements Filter {
       filterChain.doFilter(servletRequest, servletResponse);
     } finally {
       // 一个链路请求完毕，清空线程本地变量所关联的值
-      ThreadInfoUtil.clear();
     }
   }
 

@@ -4,20 +4,21 @@ import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.minesaber.zpicturebackend.enums.UserRole;
-import com.minesaber.zpicturebackend.model.entity.user.User;
-import com.minesaber.zpicturebackend.model.vo.user.UserVO;
-import com.minesaber.zpicturebackend.utils.DatabaseUtils;
 import com.minesaber.zpicturebackend.config.SystemConfig;
 import com.minesaber.zpicturebackend.constants.UserConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
-import com.minesaber.zpicturebackend.utils.ThrowUtils;
+import com.minesaber.zpicturebackend.enums.UserRole;
 import com.minesaber.zpicturebackend.mapper.UserMapper;
 import com.minesaber.zpicturebackend.model.dto.user.UserQueryRequest;
+import com.minesaber.zpicturebackend.model.entity.user.User;
+import com.minesaber.zpicturebackend.model.vo.user.UserVO;
 import com.minesaber.zpicturebackend.service.UserService;
-import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
-
+import com.minesaber.zpicturebackend.utils.DatabaseUtils;
+import com.minesaber.zpicturebackend.utils.ThrowUtils;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -25,10 +26,8 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
@@ -85,6 +84,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     user.setUserPassword(encryptPassword);
     user.setUserRole(UserConstant.DEFAULT_ROLE);
     user.setUserName(systemConfig.getDefaultUserName());
+    // 随机设置默认头像
+    String[] defaultAvatarUrlList = UserConstant.DEFAULT_AVATAR_URL_LIST;
+    user.setUserAvatar(defaultAvatarUrlList[(int) (Math.random() * defaultAvatarUrlList.length)]);
     boolean saveResult = DatabaseUtils.executeWithExceptionLogging(() -> save(user));
     ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "注册失败");
     return user.getId();
@@ -149,6 +151,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
   public User getLoginUser(HttpServletRequest request) {
     ThrowUtils.throwIf(request == null, ErrorCode.SYSTEM_ERROR);
     User currentUser = (User) request.getSession().getAttribute(UserConstant.LOGIN_USER_STATE);
+    ThrowUtils.throwIf(currentUser == null, ErrorCode.NOT_LOGIN_ERROR);
     // 与数据库同步
     Long id = currentUser.getId();
     currentUser = DatabaseUtils.executeWithExceptionLogging(() -> getById(id));

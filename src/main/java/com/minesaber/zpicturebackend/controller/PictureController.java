@@ -10,7 +10,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.minesaber.zpicturebackend.aop.annotation.AuthCheck;
 import com.minesaber.zpicturebackend.api.ai.aliyun.helpers.PictureAIHelper;
-import com.minesaber.zpicturebackend.api.ai.aliyun.model.CreateOutPaintingTaskRequest;
 import com.minesaber.zpicturebackend.api.ai.aliyun.model.CreateOutPaintingTaskResponse;
 import com.minesaber.zpicturebackend.api.ai.aliyun.model.OutPaintingTaskResult;
 import com.minesaber.zpicturebackend.api.imagesearch.baidu.ImageSearchApiFacade;
@@ -20,7 +19,6 @@ import com.minesaber.zpicturebackend.constants.UserConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 import com.minesaber.zpicturebackend.enums.PictureReviewStatus;
 import com.minesaber.zpicturebackend.exception.BusinessException;
-import com.minesaber.zpicturebackend.helpers.OssHelper;
 import com.minesaber.zpicturebackend.model.dto.base.DeleteRequest;
 import com.minesaber.zpicturebackend.model.dto.picture.*;
 import com.minesaber.zpicturebackend.model.entity.picture.Picture;
@@ -34,21 +32,20 @@ import com.minesaber.zpicturebackend.service.SpaceService;
 import com.minesaber.zpicturebackend.service.UserService;
 import com.minesaber.zpicturebackend.utils.DatabaseUtils;
 import com.minesaber.zpicturebackend.utils.ResultUtils;
+import com.minesaber.zpicturebackend.utils.SystemStatusUtil;
 import com.minesaber.zpicturebackend.utils.ThrowUtils;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/picture")
@@ -383,6 +380,7 @@ public class PictureController {
   public Response<CreateOutPaintingTaskResponse> createPictureOutPaintingTask(
       @RequestBody PictureOutPaintingRequest pictureOutPaintingRequest,
       HttpServletRequest request) {
+    ThrowUtils.throwIf(SystemStatusUtil.isClosed(), ErrorCode.MAINTENANCE_ERROR);
     if (pictureOutPaintingRequest == null || pictureOutPaintingRequest.getPictureId() == null) {
       throw new BusinessException(ErrorCode.PARAMS_ERROR);
     }

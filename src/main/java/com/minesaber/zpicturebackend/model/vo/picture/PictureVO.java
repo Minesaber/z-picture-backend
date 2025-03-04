@@ -6,11 +6,10 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.minesaber.zpicturebackend.model.entity.picture.Picture;
 import com.minesaber.zpicturebackend.model.vo.user.UserVO;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import lombok.Data;
 
 /** 图片视图 */
 @Data
@@ -84,7 +83,6 @@ public class PictureVO implements Serializable {
   public static PictureVO convertToVO(Picture picture) {
     PictureVO pictureVO = new PictureVO();
     BeanUtil.copyProperties(picture, pictureVO);
-    // 转tags为列表，添加用户视图
     if (picture.getTags() != null)
       pictureVO.setTags(JSONUtil.toList(picture.getTags(), String.class));
     return pictureVO;

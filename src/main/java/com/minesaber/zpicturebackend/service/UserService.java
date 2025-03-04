@@ -5,9 +5,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.minesaber.zpicturebackend.model.dto.user.UserQueryRequest;
 import com.minesaber.zpicturebackend.model.entity.user.User;
 import com.minesaber.zpicturebackend.model.vo.user.UserVO;
-
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 
 public interface UserService extends IService<User> {
   /**

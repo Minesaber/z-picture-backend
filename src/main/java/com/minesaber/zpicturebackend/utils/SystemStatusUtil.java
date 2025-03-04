@@ -1,15 +1,19 @@
 package com.minesaber.zpicturebackend.utils;
 
-import org.springframework.data.redis.core.RedisTemplate;
-
-import javax.annotation.Resource;
 import java.util.Objects;
 
-/** 系统状态 */
-public class SystemStatusUtil {
-  @Resource private static RedisTemplate<String, String> redisTemplate;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 
-  public static boolean isClosed = false;
+/** 系统状态 */
+@Component
+public class SystemStatusUtil implements ApplicationContextAware {
+  private static RedisTemplate<String, String> redisTemplate;
+
+  private static boolean isClosed = false;
 
   public static void closeAccess() {
     isClosed = true;
@@ -22,5 +26,10 @@ public class SystemStatusUtil {
 
   public static boolean isClosed() {
     return isClosed;
+  }
+
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    redisTemplate = applicationContext.getBean("stringRedisTemplate", RedisTemplate.class);
   }
 }

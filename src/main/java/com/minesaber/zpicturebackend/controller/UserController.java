@@ -4,26 +4,24 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.minesaber.zpicturebackend.aop.annotation.AuthCheck;
-import com.minesaber.zpicturebackend.model.entity.user.User;
-import com.minesaber.zpicturebackend.model.vo.base.Response;
-import com.minesaber.zpicturebackend.model.vo.user.UserVO;
-import com.minesaber.zpicturebackend.utils.DatabaseUtils;
-import com.minesaber.zpicturebackend.model.dto.base.DeleteRequest;
-import com.minesaber.zpicturebackend.utils.ResultUtils;
 import com.minesaber.zpicturebackend.config.SystemConfig;
 import com.minesaber.zpicturebackend.constants.UserConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
+import com.minesaber.zpicturebackend.model.dto.base.DeleteRequest;
+import com.minesaber.zpicturebackend.model.dto.user.*;
+import com.minesaber.zpicturebackend.model.entity.user.User;
+import com.minesaber.zpicturebackend.model.vo.base.Response;
+import com.minesaber.zpicturebackend.model.vo.user.UserVO;
+import com.minesaber.zpicturebackend.service.UserService;
+import com.minesaber.zpicturebackend.utils.DatabaseUtils;
+import com.minesaber.zpicturebackend.utils.ResultUtils;
 import com.minesaber.zpicturebackend.utils.SystemStatusUtil;
 import com.minesaber.zpicturebackend.utils.ThrowUtils;
-import com.minesaber.zpicturebackend.model.dto.user.*;
-import com.minesaber.zpicturebackend.service.UserService;
-import org.springframework.util.DigestUtils;
-import org.springframework.web.bind.annotation.*;
-
+import java.util.List;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.List;
+import org.springframework.util.DigestUtils;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
@@ -40,10 +38,11 @@ public class UserController {
    */
   // todo 补充同登录接口的检查规则
   @PostMapping("/register")
-  @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+  //  @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
   public Response<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
     // 1、检查参数
-    ThrowUtils.throwIf(SystemStatusUtil.isClosed, ErrorCode.FORBIDDEN_ERROR, "系统维护中，请稍后再试");
+    ThrowUtils.throwIf(SystemStatusUtil.isClosed(), ErrorCode.MAINTENANCE_ERROR);
+    ThrowUtils.throwIf(SystemStatusUtil.isClosed(), ErrorCode.MAINTENANCE_ERROR);
     ThrowUtils.throwIf(userRegisterRequest == null, ErrorCode.PARAMS_ERROR);
     // 2、注册
     String userAccount = userRegisterRequest.getUserAccount();
@@ -64,7 +63,8 @@ public class UserController {
   public Response<UserVO> userLogin(
       @RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
     // 1、检查参数
-    ThrowUtils.throwIf(SystemStatusUtil.isClosed, ErrorCode.FORBIDDEN_ERROR, "系统维护中，请稍后再试");
+    ThrowUtils.throwIf(SystemStatusUtil.isClosed(), ErrorCode.MAINTENANCE_ERROR);
+    ThrowUtils.throwIf(SystemStatusUtil.isClosed(), ErrorCode.MAINTENANCE_ERROR);
     ThrowUtils.throwIf(userLoginRequest == null, ErrorCode.PARAMS_ERROR);
     // 2、登录
     String userAccount = userLoginRequest.getUserAccount();
@@ -93,7 +93,6 @@ public class UserController {
    * @return 当前用户
    */
   @GetMapping("/get/login")
-  @AuthCheck
   public Response<UserVO> getLoginUser(HttpServletRequest request) {
     User loginUser = userService.getLoginUser(request);
     UserVO userVO = UserVO.convertToUserVO(loginUser);
