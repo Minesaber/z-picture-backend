@@ -3,7 +3,6 @@ package com.minesaber.zpicturebackend.helpers;
 import com.minesaber.zpicturebackend.model.dto.user.WxMsgRequest;
 import com.minesaber.zpicturebackend.model.entity.user.User;
 import com.minesaber.zpicturebackend.model.entity.user.UserWx;
-import com.minesaber.zpicturebackend.model.vo.user.WxMsgVO;
 import com.minesaber.zpicturebackend.model.vo.user.WxTxtMsgVO;
 import com.minesaber.zpicturebackend.service.UserService;
 import com.minesaber.zpicturebackend.service.UserWxService;
@@ -12,8 +11,6 @@ import com.minesaber.zpicturebackend.utils.SystemStatusUtil;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
 
 @Slf4j
 @Component

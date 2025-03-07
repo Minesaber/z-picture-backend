@@ -1,4 +1,4 @@
-package com.minesaber.zpicturebackend.aop;
+package com.minesaber.zpicturebackend.mvc;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.minesaber.zpicturebackend.helpers.OssHelper;
