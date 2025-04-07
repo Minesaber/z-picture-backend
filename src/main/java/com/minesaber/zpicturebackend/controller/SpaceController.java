@@ -176,9 +176,7 @@ public class SpaceController {
     long id = spaceEditRequest.getId();
     Space oldSpace = DatabaseUtils.executeWithExceptionLogging(() -> spaceService.getById(id));
     ThrowUtils.throwIf(oldSpace == null, ErrorCode.NOT_FOUND_ERROR);
-    ThrowUtils.throwIf(
-        !oldSpace.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser),
-        ErrorCode.NO_AUTH_ERROR);
+    spaceService.checkSpaceAuth(loginUser, oldSpace);
     // 操作数据库
     boolean result =
         DatabaseUtils.executeWithExceptionLogging(() -> spaceService.updateById(space));
@@ -233,9 +231,7 @@ public class SpaceController {
     Space oldSpace = DatabaseUtils.executeWithExceptionLogging(() -> spaceService.getById(id));
     ThrowUtils.throwIf(oldSpace == null, ErrorCode.NOT_FOUND_ERROR);
     // 仅本人或者管理员可删除
-    ThrowUtils.throwIf(
-        !oldSpace.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser),
-        ErrorCode.NO_AUTH_ERROR);
+    spaceService.checkSpaceAuth(loginUser, oldSpace);
     // 操作数据库
     boolean result = DatabaseUtils.executeWithExceptionLogging(() -> spaceService.removeById(id));
     ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
