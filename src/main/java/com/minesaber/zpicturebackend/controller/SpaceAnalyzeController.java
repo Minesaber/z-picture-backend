@@ -1,6 +1,7 @@
 package com.minesaber.zpicturebackend.controller;
 
 import com.minesaber.zpicturebackend.aop.annotation.AuthCheck;
+import com.minesaber.zpicturebackend.constants.UserConstant;
 import com.minesaber.zpicturebackend.enums.ErrorCode;
 import com.minesaber.zpicturebackend.model.dto.space.analyze.*;
 import com.minesaber.zpicturebackend.model.entity.space.Space;
@@ -118,14 +119,14 @@ public class SpaceAnalyzeController {
   }
 
   /**
-   * 获取空间使用排行分析
+   * 获取空间使用排行分析（仅管理员）
    *
    * @param spaceRankAnalyzeRequest 空间使用排行分析响应
    * @param request 空间使用排行分析请求
    * @return Response
    */
   @PostMapping("/rank")
-  @AuthCheck
+  @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
   public Response<List<Space>> getSpaceRankAnalyze(
       @RequestBody SpaceRankAnalyzeRequest spaceRankAnalyzeRequest, HttpServletRequest request) {
     ThrowUtils.throwIf(spaceRankAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);

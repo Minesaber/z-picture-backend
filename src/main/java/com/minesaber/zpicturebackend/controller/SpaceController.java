@@ -192,7 +192,7 @@ public class SpaceController {
    */
   @PostMapping("/update")
   @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-  public Response<Boolean> updateSpace(@RequestBody SpaceUpdateRequest spaceUpdateRequest) {
+  public Response<Long> updateSpace(@RequestBody SpaceUpdateRequest spaceUpdateRequest) {
     // 信息检查
     ThrowUtils.throwIf(
         spaceUpdateRequest == null || spaceUpdateRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
@@ -208,7 +208,7 @@ public class SpaceController {
     boolean result =
         DatabaseUtils.executeWithExceptionLogging(() -> spaceService.updateById(space));
     ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-    return ResultUtils.success(true);
+    return ResultUtils.success(space.getId());
   }
 
   /**

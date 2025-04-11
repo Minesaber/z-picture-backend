@@ -18,6 +18,7 @@ import com.minesaber.zpicturebackend.service.PictureService;
 import com.minesaber.zpicturebackend.service.SpaceAnalyzeService;
 import com.minesaber.zpicturebackend.service.SpaceService;
 import com.minesaber.zpicturebackend.service.UserService;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
   @Override
   public SpaceUsageAnalyzeResponse getSpaceUsageAnalyze(
       SpaceUsageAnalyzeRequest spaceUsageAnalyzeRequest, User loginUser) {
+    checkRequestParam(spaceUsageAnalyzeRequest);
     // 场景1：全空间或公共图库（Picture表）
     if (spaceUsageAnalyzeRequest.isQueryAll() || spaceUsageAnalyzeRequest.isQueryPublic()) {
       checkSpaceAnalyzeAuth(spaceUsageAnalyzeRequest, loginUser);
@@ -85,7 +87,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
   @Override
   public List<SpaceCategoryAnalyzeResponse> getSpaceCategoryAnalyze(
       SpaceCategoryAnalyzeRequest spaceCategoryAnalyzeRequest, User loginUser) {
-    ThrowUtils.throwIf(spaceCategoryAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+    checkRequestParam(spaceCategoryAnalyzeRequest);
     checkSpaceAnalyzeAuth(spaceCategoryAnalyzeRequest, loginUser);
     QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
     fillAnalyzeQueryWrapper(spaceCategoryAnalyzeRequest, queryWrapper);
@@ -96,6 +98,9 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
         .map(
             result -> {
               String category = (String) result.get("category");
+              if (category == null) {
+                category = "未分类";
+              }
               Long count = ((Number) result.get("count")).longValue();
               Long totalSize = ((Number) result.get("totalSize")).longValue();
               return new SpaceCategoryAnalyzeResponse(category, count, totalSize);
@@ -106,7 +111,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
   @Override
   public List<SpaceTagAnalyzeResponse> getSpaceTagAnalyze(
       SpaceTagAnalyzeRequest spaceTagAnalyzeRequest, User loginUser) {
-    ThrowUtils.throwIf(spaceTagAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+    checkRequestParam(spaceTagAnalyzeRequest);
     checkSpaceAnalyzeAuth(spaceTagAnalyzeRequest, loginUser);
     QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
     fillAnalyzeQueryWrapper(spaceTagAnalyzeRequest, queryWrapper);
@@ -129,7 +134,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
   @Override
   public List<SpaceSizeAnalyzeResponse> getSpaceSizeAnalyze(
       SpaceSizeAnalyzeRequest spaceSizeAnalyzeRequest, User loginUser) {
-    ThrowUtils.throwIf(spaceSizeAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+    checkRequestParam(spaceSizeAnalyzeRequest);
     checkSpaceAnalyzeAuth(spaceSizeAnalyzeRequest, loginUser);
     QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
     fillAnalyzeQueryWrapper(spaceSizeAnalyzeRequest, queryWrapper);
@@ -161,7 +166,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
   @Override
   public List<SpaceUserAnalyzeResponse> getSpaceUserAnalyze(
       SpaceUserAnalyzeRequest spaceUserAnalyzeRequest, User loginUser) {
-    ThrowUtils.throwIf(spaceUserAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+    checkRequestParam(spaceUserAnalyzeRequest);
     checkSpaceAnalyzeAuth(spaceUserAnalyzeRequest, loginUser);
     QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
     fillAnalyzeQueryWrapper(spaceUserAnalyzeRequest, queryWrapper);
@@ -198,7 +203,6 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
   public List<Space> getSpaceRankAnalyze(
       SpaceRankAnalyzeRequest spaceRankAnalyzeRequest, User loginUser) {
     ThrowUtils.throwIf(spaceRankAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
-    ThrowUtils.throwIf(!userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
     QueryWrapper<Space> queryWrapper = new QueryWrapper<>();
     queryWrapper
         .select("id", "spaceName", "userId", "totalSize")
@@ -247,5 +251,14 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
       return;
     }
     throw new BusinessException(ErrorCode.PARAMS_ERROR, "未指定查询范围");
+  }
+
+  private void checkRequestParam(SpaceAnalyzeRequest spaceAnalyzeRequest) {
+    ThrowUtils.throwIf(spaceAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+    Long spaceId = spaceAnalyzeRequest.getSpaceId();
+    boolean queryPublic = spaceAnalyzeRequest.isQueryPublic();
+    boolean queryAll = spaceAnalyzeRequest.isQueryAll();
+    ThrowUtils.throwIf(
+        (spaceId == null && !queryPublic && !queryAll), ErrorCode.PARAMS_ERROR, "未指定查询范围");
   }
 }
